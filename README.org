@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+#+OPTIONS: H:4 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
+
+[[./images/under-construction.png]]
+
+* GHES MIRVA Introduction
+  Multi-repository variant analysis on GHES.  
+
+* Structure
+  # From mirva-ghes.monopic
+  #+BEGIN_SRC text
+    ┌───────────────┐                                                   
+    │    Client     │                                                   
+    │   with list   │───────────────────────────────────────────┐       
+    │               │                                           │       
+    └───────────────┘                                           │       
+                                                                │       
+                                                                ▼       
+                         ┌──────────────┐               ┌──────────────┐
+                         │     ghes     │◀──────────────│    Server    │
+                         └──────────────┘               └──────────────┘
+                                 │                                      
+                                 │                                      
+                                 │                                      
+                                 ▼                                      
+                         ┌───────────────┐                              
+                         │   workflow    │              ┌──────────────┐
+                         │ in repository │─────────────▶│   Storage    │
+                         │               │              └──────────────┘
+                         └───────────────┘                              
+  #+END_SRC
+
