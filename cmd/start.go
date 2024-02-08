@@ -1,12 +1,14 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2024 github
 */
 package cmd
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +23,40 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("start called")
+		log.Println("Starting server")
+		serve()
 	},
+}
+
+func serve() {
+	r := mux.NewRouter()
+
+	// Trigger a new MRVA run
+	// POST https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses
+	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses", NewMirvaOR)
+	// 			  /repos/hohn   /mirva-controller/code-scanning/codeql/variant-analyses
+	// Or via
+	r.HandleFunc("/{repository_id}/code-scanning/codeql/variant-analyses", NewMirvaId)
+
+	r.HandleFunc("/", RootHandler)
+
+	// Bind to a port and pass our router in
+	log.Fatal(http.ListenAndServe(":8080", r))
+}
+
+func RootHandler(w http.ResponseWriter, r *http.Request) {
+	log.Print("Hi")
+	w.Write([]byte("Hi"))
+}
+
+func NewMirvaId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	log.Printf("New mrva using repository_id=%v\n", vars["repository_id"])
+	fmt.Fprintf(w, "New mrva using repository_id=%v\n", vars["repository_id"])
+}
+
+func NewMirvaOR(w http.ResponseWriter, r *http.Request) {
+	log.Print("New mrva run from owner/repo\n")
 }
 
 func init() {
