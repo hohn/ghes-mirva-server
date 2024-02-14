@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -55,4 +56,32 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.PersistentFlags().IntVar(&Verbosity, "verbosity", 1, `Logging verbosity, higher logs more:
+		
+	1 = Fatal
+	2 = Error
+	3 = Warning
+	4 = Info
+	5 = Trace
+	6 = All
+	`)
+}
+
+const (
+	LogUnused int = iota
+	LogFatal
+	LogError
+	LogWarning
+	LogInfo
+	LogTrace
+	LogAll
+)
+
+var Verbosity int
+
+func LogAbove(level int, format string, args ...interface{}) {
+	if Verbosity > level {
+		log.Printf(format, args...)
+	}
 }
