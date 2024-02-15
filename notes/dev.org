@@ -1,15 +1,71 @@
+# -*- coding: utf-8 -*-
+#+OPTIONS: H:2 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
+
 * The endpoints for a minimal server with url handlers
 ** Start server
-     #+BEGIN_SRC sh 
-       cd ~/local/ghes-mirva-server
-       go build && ./ghes-mirva-server --verbosity 4 start
+   #+BEGIN_SRC sh 
+     cd ~/local/ghes-mirva-server
+     go build && ./ghes-mirva-server --verbosity 4 start
 
-       curl http://localhost:8080
-       : Hi(base) 
-     #+END_SRC
+     curl http://localhost:8080
+     : Hi(base) 
+   #+END_SRC
 
 ** Request: mrva submit
-     #+BEGIN_SRC sh 
-       curl http://localhost:8080/hohn-mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
-       : 2024/02/14 12:21:03 New mrva using repository_id=hohn-mirva-controller
-     #+END_SRC
+   #+BEGIN_SRC sh 
+     curl http://localhost:8080/hohn-mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
+     : 2024/02/14 16:19:58 New mrva using repository_id=hohn-mirva-controller
+
+   #+END_SRC
+
+** TODO Request: mrva download part 1
+   : /repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id
+
+   #+BEGIN_SRC sh 
+     curl \
+         https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809\
+         -d '{}'   
+
+     {
+         "message": "Not Found",
+         "documentation_url": "https://docs.github.com/rest"
+     }
+   #+END_SRC
+
+** TODO Request: mrva download part 2
+   Getting repo task summary / analysis results (this is the same endpoint):
+   1. GET
+      : /repositories/{repository_id}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repositories/{variant_analysis_repo_id}
+
+   2. GET
+      : /repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}
+
+   : repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id/repositories/:variant_analysis_repo_id
+
+   #+BEGIN_SRC sh 
+     curl \
+         https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809/repos/google/flatbuffers\
+         -d '{}'   
+
+     # log:
+     {
+       "message": "Not Found",
+       "documentation_url": "https://docs.github.com/rest"
+     }
+   #+END_SRC
+
+** TODO Request: mrva download part 3
+   Download from storage, info from [[*Request: mrva download part 2][Request: mrva download part 2]]
+   #+BEGIN_SRC sh 
+     curl \
+         -d {} \
+         https://objects-origin.githubusercontent.com/codeql-query-console/codeql-variant-analysis-repo-tasks/8809/...
+   #+END_SRC
+
+** TODO Request: mrva download part 4
+   Download from storage, info from [[*Request: mrva download part 2][Request: mrva download part 2]]
+   #+BEGIN_SRC sh 
+     curl -d {} \
+          https://queryconsoleprod.blob.core.windows.net/github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/8809/...
+   #+END_SRC
+     
