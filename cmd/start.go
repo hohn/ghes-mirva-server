@@ -30,8 +30,6 @@ to quickly create a Cobra application.`,
 func serve() {
 	r := mux.NewRouter()
 
-	// Trigger a new MRVA run
-	// POST https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses
 	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses", NewMirvaOwRe)
 	// 			  /repos/hohn   /mirva-controller/code-scanning/codeql/variant-analyses
 	// Or via
@@ -39,12 +37,54 @@ func serve() {
 
 	r.HandleFunc("/", RootHandler)
 
+	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}", MirvaDownLoad1)
+
+	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}", MirvaDownLoad2)
+
+	r.HandleFunc("/codeql-query-console/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}/{owner_id}/{controller_repo_id}", MirvaDownLoad3)
+
+	r.HandleFunc("/github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}", MirvaDownLoad4)
+
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	LogAbove(LogWarning, "Request on /")
+}
+
+func MirvaDownLoad1(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	LogAbove(LogWarning, "mrva download step 1 for (%s,%s,%s)\n",
+		vars["owner"],
+		vars["repo"],
+		vars["codeql_variant_analysis_id"])
+}
+
+func MirvaDownLoad2(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	LogAbove(LogWarning, "mrva download step 2 for (%s,%s,%s,%s,%s)\n",
+		vars["owner"],
+		vars["repo"],
+		vars["codeql_variant_analysis_id"],
+		vars["repo_owner"],
+		vars["repo_name"])
+}
+
+func MirvaDownLoad3(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	LogAbove(LogWarning, "mrva download step 3 for (%s,%s,%s,%s)\n",
+		vars["codeql_variant_analysis_id"],
+		vars["repo_id"],
+		vars["owner_id"],
+		vars["controller_repo_id"])
+}
+
+func MirvaDownLoad4(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	LogAbove(LogWarning, "mrva download step 4 for (%s,%s)\n",
+		vars["codeql_variant_analysis_id"],
+		vars["repo_id"])
 }
 
 func NewMirvaId(w http.ResponseWriter, r *http.Request) {

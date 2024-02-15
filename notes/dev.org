@@ -11,61 +11,91 @@
      : Hi(base) 
    #+END_SRC
 
-** Request: mrva submit
+** NEXT Request: mrva submit
    #+BEGIN_SRC sh 
      curl http://localhost:8080/hohn-mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
      : 2024/02/14 16:19:58 New mrva using repository_id=hohn-mirva-controller
-
    #+END_SRC
 
-** TODO Request: mrva download part 1
-   : /repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id
+** NEXT Request: mrva download part 1
+   [[file:~/local/gh-mrva/log-download-60.log::Download the sarif files and CodeQL dbs when finished]]
+   1. [ ] GET
+      : /repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id
+
+   2. [X] GET
+      : /repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}
 
    #+BEGIN_SRC sh 
-     curl \
-         https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809\
-         -d '{}'   
+     curl -d '{}'   \
+         http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809
 
-     {
-         "message": "Not Found",
-         "documentation_url": "https://docs.github.com/rest"
-     }
+     # log
+     # 2024/02/14 19:18:55 mrva download step 1 for (hohn,mirva-controller,8809)
    #+END_SRC
 
-** TODO Request: mrva download part 2
+** NEXT Request: mrva download part 2
+   [[file:~/local/gh-mrva/log-download-60.log::2024/02/14 10:24:59 >> GET https://api.github.com/repos/google/flatbuffers/code-scanning/codeql/databases/cpp]]
    Getting repo task summary / analysis results (this is the same endpoint):
-   1. GET
+   1. [ ] GET
       : /repositories/{repository_id}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repositories/{variant_analysis_repo_id}
 
-   2. GET
+   2. [X] GET
       : /repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}
 
-   : repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id/repositories/:variant_analysis_repo_id
-
    #+BEGIN_SRC sh 
-     curl \
-         https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809/repos/google/flatbuffers\
-         -d '{}'   
+     curl -d '{}'   \
+         http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809/repos/google/flatbuffers
 
-     # log:
-     {
-       "message": "Not Found",
-       "documentation_url": "https://docs.github.com/rest"
-     }
+     # log
+     # 2024/02/14 19:20:05 mrva download step 2 for (hohn,mirva-controller,8809,google,flatbuffers)
    #+END_SRC
 
-** TODO Request: mrva download part 3
+** NEXT Request: mrva download part 3
+   [[file:~/local/gh-mrva/log-download-60.log::https://objects-origin.githubusercontent.com/codeql-query-console/codeql-variant-analysis-repo-tasks]]
+
    Download from storage, info from [[*Request: mrva download part 2][Request: mrva download part 2]]
-   #+BEGIN_SRC sh 
-     curl \
-         -d {} \
+
+    #+BEGIN_SRC sh 
+     curl -d {} \
          https://objects-origin.githubusercontent.com/codeql-query-console/codeql-variant-analysis-repo-tasks/8809/...
+    #+END_SRC
+   The =artifact_url= from step 2 is used and should be opaque here.  However, our
+   server will also respond to storage retrieval requests just so we have a
+   complete interface.
+
+   A (modified) url handler with all necessary arguments is at 
+   : /codeql-query-console/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}/{owner_id}/{controller_repo_id}
+
+   #+BEGIN_SRC sh 
+     curl -d {} \
+         http://localhost:8080/codeql-query-console/codeql-variant-analysis-repo-tasks/8809/19953044/2253228/747492529
+
+     # log
+     # 2024/02/14 19:24:12 mrva download step 3 for (8809,19953044,2253228,747492529)
    #+END_SRC
 
-** TODO Request: mrva download part 4
+** NEXT Request: mrva download part 4
+   [[file:~/local/gh-mrva/log-download-60.log::https://queryconsoleprod.blob.core.windows.net]]
    Download from storage, info from [[*Request: mrva download part 2][Request: mrva download part 2]]
+
    #+BEGIN_SRC sh 
      curl -d {} \
           https://queryconsoleprod.blob.core.windows.net/github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/8809/...
    #+END_SRC
-     
+
+   Again, the =artifact_url= from step 2 is used and should be opaque here.
+   However, our server will also respond to storage retrieval requests just so we
+   have a complete interface.
+
+   A (modified) url handler with all necessary arguments is at 
+   : /github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}
+
+   #+BEGIN_SRC sh 
+     curl -d {} \
+         http://localhost:8080/github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/8809/19953044
+
+     # log
+     # 2024/02/14 19:28:26 mrva download step 4 for (8809,19953044)
+   #+END_SRC
+
+
