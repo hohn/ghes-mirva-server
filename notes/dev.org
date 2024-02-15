@@ -17,6 +17,19 @@
      : 2024/02/14 16:19:58 New mrva using repository_id=hohn-mirva-controller
    #+END_SRC
 
+** NEXT request: mrva status
+   [[file:~/local/gh-mrva/log-status-60.log::Check the status]]
+   #+BEGIN_SRC sh 
+     curl -d '{}' http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/9057
+
+     # log
+     # 2024/02/15 10:13:31 mrva status request for (hohn,mirva-controller,9057)
+   #+END_SRC
+   This is the standalone status request.  
+
+   It's also the first request made when downloading; the difference is on the
+   client side's handling of the data.
+
 ** NEXT Request: mrva download part 1
    [[file:~/local/gh-mrva/log-download-60.log::Download the sarif files and CodeQL dbs when finished]]
    1. [ ] GET
@@ -30,7 +43,7 @@
          http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses/8809
 
      # log
-     # 2024/02/14 19:18:55 mrva download step 1 for (hohn,mirva-controller,8809)
+     # 2024/02/15 10:14:13 mrva status request for (hohn,mirva-controller,8809)
    #+END_SRC
 
 ** NEXT Request: mrva download part 2

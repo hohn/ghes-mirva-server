@@ -37,7 +37,10 @@ func serve() {
 
 	r.HandleFunc("/", RootHandler)
 
-	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}", MirvaDownLoad1)
+	// This is the standalone status request.
+	// It's also the first request made when downloading; the difference is on the
+	// client side's handling.
+	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}", MirvaStatus)
 
 	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}", MirvaDownLoad2)
 
@@ -53,9 +56,9 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	LogAbove(LogWarning, "Request on /")
 }
 
-func MirvaDownLoad1(w http.ResponseWriter, r *http.Request) {
+func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	LogAbove(LogWarning, "mrva download step 1 for (%s,%s,%s)\n",
+	LogAbove(LogWarning, "mrva status request for (%s,%s,%s)\n",
 		vars["owner"],
 		vars["repo"],
 		vars["codeql_variant_analysis_id"])
