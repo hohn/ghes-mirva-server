@@ -13,8 +13,8 @@
 
 ** NEXT Request: mrva submit
    #+BEGIN_SRC sh 
-     curl http://localhost:8080/hohn-mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
-     : 2024/02/14 16:19:58 New mrva using repository_id=hohn-mirva-controller
+     curl http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
+     : 2024/02/16 13:01:19 New mrva run from (hohn,mirva-controller)
    #+END_SRC
 
 ** NEXT request: mrva status
@@ -110,5 +110,6 @@
      # log
      # 2024/02/14 19:28:26 mrva download step 4 for (8809,19953044)
    #+END_SRC
+
 
 

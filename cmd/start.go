@@ -96,7 +96,10 @@ func NewMirvaId(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewMirvaOwRe(w http.ResponseWriter, r *http.Request) {
-	LogAbove(LogWarning, "New mrva run from owner/repo\n")
+	vars := mux.Vars(r)
+	LogAbove(LogWarning, "New mrva run from (%s,%s)\n",
+		vars["owner"],
+		vars["repo"])
 }
 
 func init() {
