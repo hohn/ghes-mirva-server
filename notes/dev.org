@@ -159,13 +159,18 @@
            Update to run query successfully on two repositories
      #+END_SRC
 
-     We see the broken json entry for "repositories":
+     The formatting of the json entry for "repositories" /was/ wrong.  The
+     corrected version:
      #+begin_src text
-       2024/02/21 11:02:07 >> POST https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses
-       2024/02/21 11:02:07 >> request body:
-       2024/02/21 11:02:07     "action_repo_ref": "main"
-       2024/02/21 11:02:07     "language": "cpp"
-       2024/02/21 11:02:07     "repositories": "[google/flatbuffers psycopg/psycopg2]"
+       2024/02/21 11:55:37 >> POST https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses
+       2024/02/21 11:55:37 >> request body: {
+       2024/02/21 11:55:37     "action_repo_ref": "main"
+       2024/02/21 11:55:37     "language": "cpp"
+       2024/02/21 11:55:37     "repositories": [
+           "google/flatbuffers",
+           "psycopg/psycopg2"
+       ]
+       2024/02/21 11:55:37     "query_pack": 
      #+end_src
 
    - Internal processing follows from the request payload, response body, and
