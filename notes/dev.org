@@ -146,6 +146,28 @@
        }
      #+END_SRC
 
+   - Multi-repo format details for
+     :        2024/02/14 10:20:13     "repositories": "[google/flatbuffers]"
+     From an updated [[file:~/local/gh-mrva/README.org::*Using MRVA][Using MRVA]],
+     #+BEGIN_SRC text
+       hohn@gh-hohn ~/local/gh-mrva
+       0:$ git log -1
+       commit 16010d1a3595458cff827e669e1a8d85438e15f2 (HEAD -> request-logging)
+       Author: Michael Hohn <hohn@github.com>
+       Date:   Wed Feb 21 11:06:47 2024 -0800
+
+           Update to run query successfully on two repositories
+     #+END_SRC
+
+     We see the broken json entry for "repositories":
+     #+begin_src text
+       2024/02/21 11:02:07 >> POST https://api.github.com/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses
+       2024/02/21 11:02:07 >> request body:
+       2024/02/21 11:02:07     "action_repo_ref": "main"
+       2024/02/21 11:02:07     "language": "cpp"
+       2024/02/21 11:02:07     "repositories": "[google/flatbuffers psycopg/psycopg2]"
+     #+end_src
+
    - Internal processing follows from the request payload, response body, and
      status request information
 
