@@ -30,10 +30,10 @@ to quickly create a Cobra application.`,
 func serve() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses", NewMirvaOwRe)
+	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses", MirvaRequest)
 	// 			  /repos/hohn   /mirva-controller/code-scanning/codeql/variant-analyses
 	// Or via
-	r.HandleFunc("/{repository_id}/code-scanning/codeql/variant-analyses", NewMirvaId)
+	r.HandleFunc("/{repository_id}/code-scanning/codeql/variant-analyses", MirvaRequestID)
 
 	r.HandleFunc("/", RootHandler)
 
@@ -90,16 +90,25 @@ func MirvaDownLoad4(w http.ResponseWriter, r *http.Request) {
 		vars["repo_id"])
 }
 
-func NewMirvaId(w http.ResponseWriter, r *http.Request) {
+func MirvaRequestID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	LogAbove(LogWarning, "New mrva using repository_id=%v\n", vars["repository_id"])
 }
 
-func NewMirvaOwRe(w http.ResponseWriter, r *http.Request) {
+func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	LogAbove(LogWarning, "New mrva run from (%s,%s)\n",
 		vars["owner"],
 		vars["repo"])
+	session := new(MirvaSession)
+	session.owner = vars["owner"]
+	session.controller_repo = vars["repo"]
+	session.collect_info(r)
+	session.save()
+	availableDBs, err := session.find_available_DBs()
+	session.save()
+	session.start_analyses()
+	session.submit_response(w)
 }
 
 func init() {
