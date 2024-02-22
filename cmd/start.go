@@ -100,13 +100,13 @@ func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	LogAbove(LogWarning, "New mrva run from (%s,%s)\n",
 		vars["owner"],
 		vars["repo"])
+	// TODO session id
+	session_id := 1
 	session := new(MirvaSession)
 	session.owner = vars["owner"]
 	session.controller_repo = vars["repo"]
 	session.collect_info(r)
-	session.save()
-	availableDBs, err := session.find_available_DBs()
-	session.save()
+	session.find_available_DBs(session_id)
 	session.start_analyses()
 	session.submit_response(w)
 }

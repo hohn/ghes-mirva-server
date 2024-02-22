@@ -41,12 +41,21 @@ type MirvaSession struct {
 	analysis_repos  map[owner_repo]db_location
 }
 
+func (sn MirvaSession) submit_response(w http.ResponseWriter) {
+	// TODO
+}
+
+func (sn MirvaSession) start_analyses() {
+	// TODO
+}
+
 func (sn MirvaSession) collect_info(r *http.Request) {
 	// TODO: collect:
 	// 2024/02/14 10:20:13     "language": "cpp"
 	// 2024/02/14 10:20:13     "repositories": "[google/flatbuffers]"
 	// 2024/02/14 10:20:13     "query_pack":
 	// 2024/02/14 10:20:13         base64 encoded gzipped tar file, contents {
+	sn.save()
 
 }
 
@@ -62,12 +71,14 @@ func (sn MirvaSession) collect_info(r *http.Request) {
 
 func (sn MirvaSession) save() {
 	// sqlite state retention
+	// TODO
 }
 
-func (sn MirvaSession) find_available_DBs() (map[owner_repo]db_location, error) {
+func (sn MirvaSession) find_available_DBs(session_id int) {
+	sn.load(session_id)
 	// TODO
-	err := error(nil)
-	return sn.analysis_repos, err
+	// return sn.analysis_repos, err
+	sn.save()
 }
 
 // Define types to represent the json map
@@ -142,9 +153,4 @@ func (_ no_codeql_db_repos) Reason() string {
 }
 func (_ over_limit_repos) Reason() string {
 	return "over_limit_repos"
-}
-
-func (ms *MirvaSession) find_available_DBs() {
-	//
-
 }
