@@ -138,7 +138,7 @@
      In
      : MirvaRequest(w http.ResponseWriter, r *http.Request) 
 
-   - [ ] POST request, data from the payload:
+   - [X] POST request, data from the payload:
      #+BEGIN_SRC text
        2024/02/21 11:55:37 >> request body: {
        2024/02/21 11:55:37     "action_repo_ref": "main"
@@ -152,6 +152,8 @@
        ...
        }
      #+END_SRC
+
+   - [ ] Directory structure
 
    - [ ] Internal processing follows from the request payload, response body, and
      status request information
