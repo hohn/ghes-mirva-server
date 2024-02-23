@@ -101,12 +101,12 @@ func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 		vars["owner"],
 		vars["repo"])
 	// TODO session id
-	session_id := 1
 	session := new(MirvaSession)
+	session.id = next_id()
 	session.owner = vars["owner"]
 	session.controller_repo = vars["repo"]
-	session.collect_info(r)
-	session.find_available_DBs(session_id)
+	session.collect_info(w, r)
+	session.find_available_DBs()
 	session.start_analyses()
 	session.submit_response(w)
 }
