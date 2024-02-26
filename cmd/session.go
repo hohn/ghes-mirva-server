@@ -126,13 +126,6 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 		sn.repositories = append(sn.repositories, owner_repo{t[0], t[1]})
 	}
 
-	// TODO: Determine for which repositories codeql databases are available.
-	// Those will be the analysis_repos.  The rest will be skipped.
-
-	// skipped_repos  []skipped_repo_element
-	// analysis_repos map[owner_repo]db_location
-
-	// Keep the session state for future requests
 	sn.save()
 
 }
@@ -228,8 +221,14 @@ func (sn MirvaSession) load() {
 
 func (sn MirvaSession) find_available_DBs() {
 	sn.load()
-	// TODO
-	// return sn.analysis_repos, err
+
+	// TODO: Determine for which repositories codeql databases are available.
+	// Those will be the analysis_repos.  The rest will be skipped.
+	//
+	// skipped_repos  []skipped_repo_element
+	// analysis_repos map[owner_repo]db_location
+
+	// sn.analysis_repos
 	sn.save()
 }
 

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Color codes
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+# Check if CodeQL binary is installed
+echo -e "${GREEN}Checking for CodeQL...${NC}"
+if ! command -v codeql &> /dev/null; then
+    echo -e "${YELLOW}CodeQL binary not found. Please install CodeQL.${NC}"
+    exit 1
+fi
+

@@ -100,7 +100,6 @@ func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	LogAbove(LogWarning, "New mrva run from (%s,%s)\n",
 		vars["owner"],
 		vars["repo"])
-	// TODO session id
 	session := new(MirvaSession)
 	session.id = next_id()
 	session.owner = vars["owner"]
