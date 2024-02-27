@@ -78,16 +78,17 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 	var m_ac Actor
 
 	var r_nfr NotFoundRepos
-	sn.arr_to_json(r_nfr)
+	sn.arr_to_json_NFR(r_nfr)
 
-	// TODO fill these
 	var r_amr AccessMismatchRepos
+	sn.arr_to_json_AMR(r_amr)
 
 	var r_ncd NoCodeqlDBRepos
-	sn.arr_to_json1(r_ncd)
+	sn.arr_to_json_NCDB(r_ncd)
 
 	// TODO fill these
 	var r_olr OverLimitRepos
+	sn.arr_to_json_OLR(r_olr)
 
 	m_skip := SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
 
@@ -116,17 +117,34 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 
 }
 
-func (sn MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
-	r_ncd.RepositoryCount = len(sn.no_codeql_db_repos.ndb)
-	for _, repo := range sn.no_codeql_db_repos.ndb {
+// See macros.m4 for generating these
+func (sn MirvaSession) arr_to_json_NCDB(r_ncd NoCodeqlDBRepos) {
+	r_ncd.RepositoryCount = len(sn.no_codeql_db_repos.orl)
+	for _, repo := range sn.no_codeql_db_repos.orl {
 		r_ncd.Repositories = append(r_ncd.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
 
-func (sn MirvaSession) arr_to_json(r_nfr NotFoundRepos) {
-	r_nfr.RepositoryCount = len(sn.not_found_repos.nf)
-	for _, repo := range sn.not_found_repos.nf {
+func (sn MirvaSession) arr_to_json_AMR(r_ncd AccessMismatchRepos) {
+	r_ncd.RepositoryCount = len(sn.access_mismatch_repos.orl)
+	for _, repo := range sn.access_mismatch_repos.orl {
+		r_ncd.Repositories = append(r_ncd.Repositories,
+			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+	}
+}
+
+func (sn MirvaSession) arr_to_json_OLR(r_ncd OverLimitRepos) {
+	r_ncd.RepositoryCount = len(sn.over_limit_repos.orl)
+	for _, repo := range sn.over_limit_repos.orl {
+		r_ncd.Repositories = append(r_ncd.Repositories,
+			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+	}
+}
+
+func (sn MirvaSession) arr_to_json_NFR(r_nfr NotFoundRepos) {
+	r_nfr.RepositoryCount = len(sn.not_found_repos.orl)
+	for _, repo := range sn.not_found_repos.orl {
 		r_nfr.RepositoryFullNames = append(r_nfr.RepositoryFullNames,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
@@ -306,7 +324,7 @@ func (sn MirvaSession) find_available_DBs() {
 		dbPath := filepath.Join(dbPrefix, dbName)
 		if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 			slog.Info("Database does not exist for repository ", "owner/repo", rep)
-			sn.not_found_repos.nf = append(sn.not_found_repos.nf, rep)
+			sn.not_found_repos.orl = append(sn.not_found_repos.orl, rep)
 		} else {
 			slog.Info("Found database for ", "owner/repo", rep)
 			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
@@ -346,19 +364,19 @@ type skipped_repo_element interface {
 }
 
 type access_mismatch_repos struct {
-	am []owner_repo_loc
+	orl []owner_repo_loc
 }
 
 type no_codeql_db_repos struct {
-	ndb []owner_repo_loc
+	orl []owner_repo_loc
 }
 
 type over_limit_repos struct {
-	ol []owner_repo_loc
+	orl []owner_repo_loc
 }
 
 type not_found_repos struct {
-	nf []owner_repo_loc
+	orl []owner_repo_loc
 }
 
 func (n not_found_repos) Reason() string {
@@ -370,7 +388,7 @@ func (n not_found_repos) Count_Key() string {
 }
 
 func (n not_found_repos) Count() int {
-	return len(n.nf)
+	return len(n.orl)
 }
 
 func (n not_found_repos) Repository_Key() string {
@@ -379,17 +397,17 @@ func (n not_found_repos) Repository_Key() string {
 
 func (n not_found_repos) Repository() owner_repo_loc {
 	// FIXME: return type
-	return n.nf[0]
+	return n.orl[0]
 }
 
 func (u over_limit_repos) Count() int {
-	return len(u.ol)
+	return len(u.orl)
 }
 func (u over_limit_repos) Repository_Key() string {
 	return "over_limit_repos"
 }
 func (u over_limit_repos) Repository() owner_repo_loc {
-	return u.ol[0]
+	return u.orl[0]
 }
 
 func (_ access_mismatch_repos) Reason() string {
