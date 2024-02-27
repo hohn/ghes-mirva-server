@@ -32,13 +32,12 @@ type db_location interface {
 }
 
 type db_location_local struct {
-	db_location
-	prefix string
-	db_dir string
+	prefix  string
+	db_file string
 }
 
 func (dbl db_location_local) DBPATH() string {
-	return filepath.Join(dbl.prefix, dbl.db_dir)
+	return filepath.Join(dbl.prefix, dbl.db_file)
 }
 
 type MirvaSession struct {
@@ -67,18 +66,20 @@ var next_id = _next_id()
 
 func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 	// TODO
+
 }
 
 func (sn MirvaSession) start_analyses() {
 	// TODO
 }
 
+// Collect the following info from the request body
+//
+//	"language": "cpp"
+//	"repositories": "[google/flatbuffers]"
+//	"query_pack":
+//	    base64 encoded gzipped tar file, contents {...}
 func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
-	// TODO: collect:
-	// 2024/02/14 10:20:13     "language": "cpp"
-	// 2024/02/14 10:20:13     "repositories": "[google/flatbuffers]"
-	// 2024/02/14 10:20:13     "query_pack":
-	// 2024/02/14 10:20:13         base64 encoded gzipped tar file, contents {
 	if r.Body == nil {
 		err := "Missing request body"
 		log.Println(err)
@@ -120,7 +121,7 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 	for _, v := range msg.Repositories {
 		t := strings.Split(v, "/")
 		if len(t) != 2 {
-			slog.Error("Invalid owner / repo entry", "entry", t)
+			slog.Error("Invalid owner / r entry", "entry", t)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		sn.repositories = append(sn.repositories, owner_repo{t[0], t[1]})
@@ -150,6 +151,8 @@ func (sn MirvaSession) extract_tgz(qp string) error {
 	if err != nil {
 		slog.Error("unable to save querypack body decoding error", "path", fpath)
 		return err
+	} else {
+		slog.Info("querypack saved to ", "path", fpath)
 	}
 	sn.query_pack.tgz_filepath = fpath
 	return nil
@@ -199,7 +202,7 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 	return m, err
 }
 
-// For every repo with a built database we ultimately
+// For every r with a built database we ultimately
 // run the queries to create the sarif file:
 //
 // cd ~/local
@@ -219,16 +222,38 @@ func (sn MirvaSession) load() {
 	// TODO
 }
 
+//		Determine for which repositories codeql databases are available.
+//
+//	 Those will be the analysis_repos.  The rest will be skipped.
 func (sn MirvaSession) find_available_DBs() {
 	sn.load()
 
-	// TODO: Determine for which repositories codeql databases are available.
-	// Those will be the analysis_repos.  The rest will be skipped.
-	//
-	// skipped_repos  []skipped_repo_element
-	// analysis_repos map[owner_repo]db_location
+	cwd, err := os.Getwd()
+	if err != nil {
+		slog.Error("No working directory")
+		return
+	}
 
-	// sn.analysis_repos
+	// We're looking for paths like
+	// codeql/sarif/google/flatbuffers/google_flatbuffers.sarif
+	for _, rep := range sn.repositories {
+		dbPrefix := filepath.Join(cwd, "codeql", rep.owner, rep.repo)
+		dbName := fmt.Sprintf("%s_%s.sarif", rep.owner, rep.repo)
+		dbPath := filepath.Join(dbPrefix, dbName)
+		if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+			slog.Info("Database does not exist for repository ", "owner/repo", rep)
+			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
+		} else {
+			slog.Info("Found database for ", "owner/repo", rep)
+			sn.skipped_repos = append(sn.skipped_repos, not_found_repos{unused_repo{
+				count_key:      "repository_count",
+				count:          1,
+				repository_key: "repositories",
+				repository:     dbPath,
+				owre:           rep}})
+		}
+	}
+
 	sn.save()
 }
 
@@ -257,27 +282,51 @@ type skipped_repo_element interface {
 	Reason() string
 	Count_Key() string
 	Count() int
-	Repositories_Key() string
-	Resitories() []owner_repo
+	Repository_Key() string
+	Resitories() owner_repo
 }
 
 type unused_repo struct {
-	count_key        string
-	count            int
-	repositories_key string
-	repositories     []string
+	count_key      string
+	count          int
+	repository_key string
+	repository     string
+	owre           owner_repo
 }
+
 type access_mismatch_repos struct {
 	unused_repo
 }
-type not_found_repos struct {
-	unused_repo
-}
+
 type no_codeql_db_repos struct {
 	unused_repo
 }
 type over_limit_repos struct {
 	unused_repo
+}
+
+type not_found_repos struct {
+	unused_repo
+}
+
+func (n not_found_repos) Reason() string {
+	return "not_found_repos"
+}
+
+func (n not_found_repos) Count_Key() string {
+	return n.count_key
+}
+
+func (n not_found_repos) Count() int {
+	return n.count
+}
+
+func (n not_found_repos) Repository_Key() string {
+	return n.repository_key
+}
+
+func (n not_found_repos) Resitories() owner_repo {
+	return n.owre
 }
 
 func (u unused_repo) Count_Key() string {
@@ -286,19 +335,17 @@ func (u unused_repo) Count_Key() string {
 func (u unused_repo) Count() int {
 	return u.count
 }
-func (u unused_repo) Repositories_Key() string {
-	return u.repositories_key
+func (u unused_repo) Repository_Key() string {
+	return u.repository_key
 }
-func (u unused_repo) Repositories() []string {
-	return u.repositories
+func (u unused_repo) Repository() string {
+	return u.repository
 }
 
 func (_ access_mismatch_repos) Reason() string {
 	return "access_mismatch_repos"
 }
-func (_ not_found_repos) Reason() string {
-	return "not_found_repos"
-}
+
 func (_ no_codeql_db_repos) Reason() string {
 	return "no_codeql_db_repos"
 }

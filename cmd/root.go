@@ -57,6 +57,12 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+	rootCmd.Flags().StringVar(&Backend, "backend", "local", `Backend to use.
+
+	Currently available:
+	- local
+	`)
+
 	rootCmd.PersistentFlags().IntVar(&Verbosity, "verbosity", 1, `Logging verbosity, higher logs more:
 		
 	1 = Fatal
@@ -67,6 +73,8 @@ func init() {
 	6 = All
 	`)
 }
+
+var Backend string = "local"
 
 const (
 	LogUnused int = iota

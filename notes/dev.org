@@ -153,9 +153,9 @@
        }
      #+END_SRC
 
-   - [ ] Directory structure
-
-   - [ ] Internal processing follows from the request payload, response body, and
+   - [X] Directory structure
+     
+   - [X] Internal processing follows from the request payload, response body, and
      status request information
 
    - [ ] POST request reponse body in full; much of this response will not be used
@@ -265,8 +265,10 @@
        }
      #+END_SRC
 
-** TODO Include Context in request propagation
-   https://pkg.go.dev/context#Context
+** TODO mrva request testing via client
+   The gh-mrva client uses gh.RESTClient(), so URL overrides are there.
+
+   Pre-canned requests from =curl= may be easier for testing.
 
 ** TODO mrva status activity
    [[file:~/local/gh-mrva/log-status-60.log::Check the status]]
@@ -284,3 +286,8 @@
      the [[*mrva status activity][mrva status activity]] and [[*mrva submit activity][mrva submit activity]]
    - POST request reponse body in full; much of this response will not be used
      further, so we provide dummy values for those entries.
+
+* TODO Include Context in request propagation
+   https://pkg.go.dev/context#Context
+
+     
