@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -16,11 +17,13 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-type owner_repo struct {
-	owner string
-	repo  string
+type owner_repo_loc struct {
+	owner    string
+	repo     string
+	location db_location
 }
 
 type b64gztar struct {
@@ -47,10 +50,14 @@ type MirvaSession struct {
 
 	query_pack   b64gztar
 	language     string
-	repositories []owner_repo
+	repositories []owner_repo_loc
 
-	skipped_repos  []skipped_repo_element
-	analysis_repos map[owner_repo]db_location
+	access_mismatch_repos access_mismatch_repos
+	not_found_repos       not_found_repos
+	no_codeql_db_repos    no_codeql_db_repos
+	over_limit_repos      over_limit_repos
+
+	analysis_repos map[owner_repo_loc]db_location
 }
 
 func _next_id() func() int {
@@ -65,8 +72,64 @@ func _next_id() func() int {
 var next_id = _next_id()
 
 func (sn MirvaSession) submit_response(w http.ResponseWriter) {
-	// TODO
 
+	// Construct the response bottom-up
+	var m_cr ControllerRepo
+	var m_ac Actor
+
+	var r_nfr NotFoundRepos
+	sn.arr_to_json(r_nfr)
+
+	// TODO fill these
+	var r_amr AccessMismatchRepos
+
+	var r_ncd NoCodeqlDBRepos
+	sn.arr_to_json1(r_ncd)
+
+	// TODO fill these
+	var r_olr OverLimitRepos
+
+	m_skip := SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
+
+	var m_sr SubmitResponse
+	m_sr.Actor = m_ac
+	m_sr.ControllerRepo = m_cr
+	m_sr.ID = sn.id
+	m_sr.QueryLanguage = sn.language
+	m_sr.QueryPackURL = sn.query_pack.tgz_filepath
+	m_sr.CreatedAt = time.Now().Format(time.RFC3339)
+	m_sr.UpdatedAt = time.Now().Format(time.RFC3339)
+	m_sr.Status = "in_progress"
+	m_sr.SkippedRepositories = m_skip
+
+	// Encode the response as JSON
+	submit_response, err := json.Marshal(m_sr)
+	if err != nil {
+		log.Println("Error encoding response as JSON:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Send analysisReposJSON via ResponseWriter
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(submit_response)
+
+}
+
+func (sn MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
+	r_ncd.RepositoryCount = len(sn.no_codeql_db_repos.ndb)
+	for _, repo := range sn.no_codeql_db_repos.ndb {
+		r_ncd.Repositories = append(r_ncd.Repositories,
+			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+	}
+}
+
+func (sn MirvaSession) arr_to_json(r_nfr NotFoundRepos) {
+	r_nfr.RepositoryCount = len(sn.not_found_repos.nf)
+	for _, repo := range sn.not_found_repos.nf {
+		r_nfr.RepositoryFullNames = append(r_nfr.RepositoryFullNames,
+			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+	}
 }
 
 func (sn MirvaSession) start_analyses() {
@@ -105,6 +168,7 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 	// 1. Save the query pack and keep the location
 	if !is_base64_gzip([]byte(msg.QueryPack)) {
 		slog.Error("MRVA submission body querypack has invalid format")
+		err := errors.New("MRVA submission body querypack has invalid format")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -124,7 +188,7 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 			slog.Error("Invalid owner / r entry", "entry", t)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		sn.repositories = append(sn.repositories, owner_repo{t[0], t[1]})
+		sn.repositories = append(sn.repositories, owner_repo_loc{t[0], t[1], nil})
 	}
 
 	sn.save()
@@ -202,7 +266,7 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 	return m, err
 }
 
-// For every r with a built database we ultimately
+// For every repository with a built database we ultimately
 // run the queries to create the sarif file:
 //
 // cd ~/local
@@ -242,15 +306,10 @@ func (sn MirvaSession) find_available_DBs() {
 		dbPath := filepath.Join(dbPrefix, dbName)
 		if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 			slog.Info("Database does not exist for repository ", "owner/repo", rep)
-			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
+			sn.not_found_repos.nf = append(sn.not_found_repos.nf, rep)
 		} else {
 			slog.Info("Found database for ", "owner/repo", rep)
-			sn.skipped_repos = append(sn.skipped_repos, not_found_repos{unused_repo{
-				count_key:      "repository_count",
-				count:          1,
-				repository_key: "repositories",
-				repository:     dbPath,
-				owre:           rep}})
+			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
 		}
 	}
 
@@ -276,37 +335,30 @@ func (sn MirvaSession) find_available_DBs() {
 // 		}
 // 	}
 
-// This interface flattens the tree; it may be easier to use a
-// []skipped_repo_element in go, then reproduce the tree in json.
+// This interface flattens the tree; it is easier to use 4 typed arrays
+// in Go and then form the tree before producing json.
 type skipped_repo_element interface {
 	Reason() string
 	Count_Key() string
 	Count() int
 	Repository_Key() string
-	Resitories() owner_repo
-}
-
-type unused_repo struct {
-	count_key      string
-	count          int
-	repository_key string
-	repository     string
-	owre           owner_repo
+	Repository() owner_repo_loc
 }
 
 type access_mismatch_repos struct {
-	unused_repo
+	am []owner_repo_loc
 }
 
 type no_codeql_db_repos struct {
-	unused_repo
+	ndb []owner_repo_loc
 }
+
 type over_limit_repos struct {
-	unused_repo
+	ol []owner_repo_loc
 }
 
 type not_found_repos struct {
-	unused_repo
+	nf []owner_repo_loc
 }
 
 func (n not_found_repos) Reason() string {
@@ -314,32 +366,30 @@ func (n not_found_repos) Reason() string {
 }
 
 func (n not_found_repos) Count_Key() string {
-	return n.count_key
+	return "not_found_repos"
 }
 
 func (n not_found_repos) Count() int {
-	return n.count
+	return len(n.nf)
 }
 
 func (n not_found_repos) Repository_Key() string {
-	return n.repository_key
+	return "repository_full_names"
 }
 
-func (n not_found_repos) Resitories() owner_repo {
-	return n.owre
+func (n not_found_repos) Repository() owner_repo_loc {
+	// FIXME: return type
+	return n.nf[0]
 }
 
-func (u unused_repo) Count_Key() string {
-	return u.count_key
+func (u over_limit_repos) Count() int {
+	return len(u.ol)
 }
-func (u unused_repo) Count() int {
-	return u.count
+func (u over_limit_repos) Repository_Key() string {
+	return "over_limit_repos"
 }
-func (u unused_repo) Repository_Key() string {
-	return u.repository_key
-}
-func (u unused_repo) Repository() string {
-	return u.repository
+func (u over_limit_repos) Repository() owner_repo_loc {
+	return u.ol[0]
 }
 
 func (_ access_mismatch_repos) Reason() string {
@@ -348,7 +398,4 @@ func (_ access_mismatch_repos) Reason() string {
 
 func (_ no_codeql_db_repos) Reason() string {
 	return "no_codeql_db_repos"
-}
-func (_ over_limit_repos) Reason() string {
-	return "over_limit_repos"
 }
