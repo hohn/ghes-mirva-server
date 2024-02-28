@@ -12,14 +12,16 @@ func (sn MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
 arr_to_json()
 
 define(`arr_to_json', `
-func (sn MirvaSession) arr_to_json_$3(r_ncd $1) {
-	r_ncd.RepositoryCount = l`'en(sn.$2.orl)
+func (sn MirvaSession) arr_to_json_$3(r__ $1) {
+        r__.$4 = []string{}
+	r__.RepositoryCount = l`'en(sn.$2.orl)
 	for _, repo := range sn.$2.orl {
-		r_ncd.Repositories = append(r_ncd.Repositories,
+		r__.$4 = append(r__.$4,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
 ')
-arr_to_json(NoCodeqlDBRepos,     no_codeql_db_repos,    NCDB)
-arr_to_json(AccessMismatchRepos, access_mismatch_repos, AMR)
-arr_to_json(OverLimitRepos,      over_limit_repos,      OLR)
+arr_to_json(NoCodeqlDBRepos,     no_codeql_db_repos,    NCDB , Repositories)
+arr_to_json(AccessMismatchRepos, access_mismatch_repos, AMR  , Repositories)
+arr_to_json(OverLimitRepos,      over_limit_repos,      OLR  , Repositories)
+arr_to_json(NotFoundRepos,       not_found_repos,       NFR  , RepositoryFullNames)

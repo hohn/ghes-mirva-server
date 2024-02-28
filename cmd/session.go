@@ -119,35 +119,41 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 
 }
 
-// See macros.m4 for generating these
-func (sn MirvaSession) arr_to_json_NCDB(r_ncd NoCodeqlDBRepos) {
-	r_ncd.RepositoryCount = len(sn.no_codeql_db_repos.orl)
+/*
+See macros.m4 for generating these
+*/
+func (sn MirvaSession) arr_to_json_NCDB(r__ NoCodeqlDBRepos) {
+	r__.Repositories = []string{}
+	r__.RepositoryCount = len(sn.no_codeql_db_repos.orl)
 	for _, repo := range sn.no_codeql_db_repos.orl {
-		r_ncd.Repositories = append(r_ncd.Repositories,
+		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
 
-func (sn MirvaSession) arr_to_json_AMR(r_ncd AccessMismatchRepos) {
-	r_ncd.RepositoryCount = len(sn.access_mismatch_repos.orl)
+func (sn MirvaSession) arr_to_json_AMR(r__ AccessMismatchRepos) {
+	r__.Repositories = []string{}
+	r__.RepositoryCount = len(sn.access_mismatch_repos.orl)
 	for _, repo := range sn.access_mismatch_repos.orl {
-		r_ncd.Repositories = append(r_ncd.Repositories,
+		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
 
-func (sn MirvaSession) arr_to_json_OLR(r_ncd OverLimitRepos) {
-	r_ncd.RepositoryCount = len(sn.over_limit_repos.orl)
+func (sn MirvaSession) arr_to_json_OLR(r__ OverLimitRepos) {
+	r__.Repositories = []string{}
+	r__.RepositoryCount = len(sn.over_limit_repos.orl)
 	for _, repo := range sn.over_limit_repos.orl {
-		r_ncd.Repositories = append(r_ncd.Repositories,
+		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
 
-func (sn MirvaSession) arr_to_json_NFR(r_nfr NotFoundRepos) {
-	r_nfr.RepositoryCount = len(sn.not_found_repos.orl)
+func (sn MirvaSession) arr_to_json_NFR(r__ NotFoundRepos) {
+	r__.RepositoryFullNames = []string{}
+	r__.RepositoryCount = len(sn.not_found_repos.orl)
 	for _, repo := range sn.not_found_repos.orl {
-		r_nfr.RepositoryFullNames = append(r_nfr.RepositoryFullNames,
+		r__.RepositoryFullNames = append(r__.RepositoryFullNames,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
 }
