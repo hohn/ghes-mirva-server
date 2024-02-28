@@ -35,7 +35,21 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	// Run: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		switch logging_verbosity {
+		case "debug":
+			slog.SetLogLoggerLevel(slog.LevelDebug)
+		case "info":
+			slog.SetLogLoggerLevel(slog.LevelInfo)
+		case "warn":
+			slog.SetLogLoggerLevel(slog.LevelWarn)
+		case "error":
+			slog.SetLogLoggerLevel(slog.LevelError)
+		default:
+			log.Printf("Invalid logging verbosity level: %s", logging_verbosity)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -63,26 +77,15 @@ func init() {
 	- local
 	`)
 
-	var logging_verbosity string
 	rootCmd.PersistentFlags().StringVar(&logging_verbosity, "verbosity", "info", `Logging verbosity, from least to most verbose: 
 	- error
 	- warn
 	- info
 	- debug
 	`)
-	switch logging_verbosity {
-	case "debug":
-		slog.SetLogLoggerLevel(slog.LevelDebug)
-	case "info":
-		slog.SetLogLoggerLevel(slog.LevelInfo)
-	case "warn":
-		slog.SetLogLoggerLevel(slog.LevelWarn)
-	case "error":
-		slog.SetLogLoggerLevel(slog.LevelError)
-	default:
-		log.Printf("Invalid logging verbosity level: %s", logging_verbosity)
-	}
 }
+
+var logging_verbosity string
 
 var Backend string = "local"
 
