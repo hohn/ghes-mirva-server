@@ -5,16 +5,15 @@
 ** Start server
    #+BEGIN_SRC sh 
      cd ~/local/ghes-mirva-server
-     go build && ./ghes-mirva-server --verbosity 4 start
 
-     curl http://localhost:8080
-     : Hi(base) 
+     go build && ./ghes-mirva-server --verbosity debug start
    #+END_SRC
 
 ** DONE Request: mrva submit
    #+BEGIN_SRC sh 
      curl http://localhost:8080/repos/hohn/mirva-controller/code-scanning/codeql/variant-analyses -d '{}'
-     : 2024/02/16 13:01:19 New mrva run from (hohn,mirva-controller)
+     # 2024/02/28 09:26:24 INFO New mrva run  owner=hohn repo=mirva-controller
+     # 2024/02/28 09:26:24 ERROR MRVA submission body querypack has invalid format
    #+END_SRC
 
 ** DONE request: mrva status

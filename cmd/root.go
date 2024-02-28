@@ -64,7 +64,7 @@ func init() {
 	`)
 
 	var logging_verbosity string
-	rootCmd.Flags().StringVar(&logging_verbosity, "verbosity", "info", `Logging verbosity, from least to most verbose: 
+	rootCmd.PersistentFlags().StringVar(&logging_verbosity, "verbosity", "info", `Logging verbosity, from least to most verbose: 
 	- error
 	- warn
 	- info

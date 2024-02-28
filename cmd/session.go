@@ -79,18 +79,14 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 	var m_cr ControllerRepo
 	var m_ac Actor
 
-	var r_nfr NotFoundRepos
-	sn.arr_to_json_NFR(r_nfr)
+	r_nfr := sn.arr_to_json_NFR()
 
-	var r_amr AccessMismatchRepos
-	sn.arr_to_json_AMR(r_amr)
+	r_amr := sn.arr_to_json_AMR()
 
-	var r_ncd NoCodeqlDBRepos
-	sn.arr_to_json_NCDB(r_ncd)
+	r_ncd := sn.arr_to_json_NCDB()
 
 	// TODO fill these
-	var r_olr OverLimitRepos
-	sn.arr_to_json_OLR(r_olr)
+	r_olr := sn.arr_to_json_OLR()
 
 	m_skip := SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
 
@@ -122,41 +118,53 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 /*
 See macros.m4 for generating these
 */
-func (sn MirvaSession) arr_to_json_NCDB(r__ NoCodeqlDBRepos) {
+func (sn MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
+	var r__ NoCodeqlDBRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.no_codeql_db_repos.orl)
 	for _, repo := range sn.no_codeql_db_repos.orl {
 		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
+	return r__
 }
 
-func (sn MirvaSession) arr_to_json_AMR(r__ AccessMismatchRepos) {
+func (sn MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
+	var r__ AccessMismatchRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.access_mismatch_repos.orl)
 	for _, repo := range sn.access_mismatch_repos.orl {
 		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
+	return r__
 }
 
-func (sn MirvaSession) arr_to_json_OLR(r__ OverLimitRepos) {
+func (sn MirvaSession) arr_to_json_OLR() OverLimitRepos {
+	var r__ OverLimitRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.over_limit_repos.orl)
 	for _, repo := range sn.over_limit_repos.orl {
 		r__.Repositories = append(r__.Repositories,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
+	return r__
 }
 
-func (sn MirvaSession) arr_to_json_NFR(r__ NotFoundRepos) {
+func (sn MirvaSession) arr_to_json_NFR() NotFoundRepos {
+	var r__ NotFoundRepos
 	r__.RepositoryFullNames = []string{}
 	r__.RepositoryCount = len(sn.not_found_repos.orl)
 	for _, repo := range sn.not_found_repos.orl {
 		r__.RepositoryFullNames = append(r__.RepositoryFullNames,
 			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
 	}
+	return r__
 }
+
+/*
+end generated code
+*/
 
 func (sn MirvaSession) start_analyses() {
 	// TODO
