@@ -74,9 +74,10 @@ var next_id = _next_id()
 
 func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 
-	slog.Debug("Form and send response for submitted analysis job", "id", sn.id)
+	slog.Debug("Forming and sending response for submitted analysis job", "id", sn.id)
 
 	// Construct the response bottom-up
+	// TODO functional style
 	var m_cr ControllerRepo
 	var m_ac Actor
 
@@ -168,7 +169,7 @@ end generated code
 */
 
 func (sn *MirvaSession) start_analyses() {
-	// TODO
+	// TODO start_analyses()
 	slog.Debug("Starting codeql database analyze jobs")
 }
 
@@ -306,8 +307,8 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 	return m, err
 }
 
-// For every repository with a built database we ultimately
-// run the queries to create the sarif file:
+// TODO For every repository with a built database we ultimately run
+// the queries to create the sarif file:
 //
 // cd ~/local
 // codeql database analyze --format=sarif-latest --rerun \
@@ -317,13 +318,12 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 // 	   -- $DBPATH $QUERYPACKS
 
 func (sn *MirvaSession) save() {
-	// sqlite state retention
-	// TODO
+	// TODO sqlite state retention
+
 }
 
 func (sn *MirvaSession) load() {
-	// sqlite state retention
-	// TODO
+	// TODO sqlite state retention
 }
 
 //		Determine for which repositories codeql databases are available.
@@ -427,7 +427,6 @@ func (n not_found_repos) Repository_Key() string {
 }
 
 func (n not_found_repos) Repository() owner_repo_loc {
-	// FIXME: return type
 	return n.orl[0]
 }
 
