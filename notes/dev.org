@@ -24,6 +24,7 @@
                   "request": "launch",
                   "mode": "auto",
                   "program": "${workspaceFolder}",
+                  "cwd": "${workspaceFolder}",
                   "buildFlags": [],
                   "args": [
                       "--verbosity", "debug",

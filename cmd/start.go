@@ -99,6 +99,7 @@ func MirvaRequestID(w http.ResponseWriter, r *http.Request) {
 func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	slog.Info("New mrva run ", "owner", vars["owner"], "repo", vars["repo"])
+	// TODO Change this to functional style?
 	session := new(MirvaSession)
 	session.id = next_id()
 	session.owner = vars["owner"]

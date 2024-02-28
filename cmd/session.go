@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"log/slog"
 	"net/http"
@@ -340,17 +341,23 @@ func (sn *MirvaSession) find_available_DBs() {
 		return
 	}
 
+	if sn.analysis_repos == nil {
+		sn.analysis_repos = map[owner_repo_loc]db_location{}
+	}
+
 	// We're looking for paths like
 	// codeql/sarif/google/flatbuffers/google_flatbuffers.sarif
 	for _, rep := range sn.repositories {
-		dbPrefix := filepath.Join(cwd, "codeql", rep.owner, rep.repo)
-		dbName := fmt.Sprintf("%s_%s.sarif", rep.owner, rep.repo)
+		dbPrefix := filepath.Join(cwd, "codeql", "dbs", rep.owner, rep.repo)
+		dbName := fmt.Sprintf("%s_%s_db.zip", rep.owner, rep.repo)
 		dbPath := filepath.Join(dbPrefix, dbName)
-		if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-			slog.Info("Database does not exist for repository ", "owner/repo", rep)
+
+		if _, err := os.Stat(dbPath); errors.Is(err, fs.ErrNotExist) {
+			slog.Info("Database does not exist for repository ", "owner/repo", rep,
+				"path", dbPath)
 			sn.not_found_repos.orl = append(sn.not_found_repos.orl, rep)
 		} else {
-			slog.Info("Found database for ", "owner/repo", rep)
+			slog.Info("Found database for ", "owner/repo", rep, "path", dbPath)
 			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
 		}
 	}
