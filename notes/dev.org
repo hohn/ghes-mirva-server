@@ -5,9 +5,35 @@
 ** Start server
    #+BEGIN_SRC sh 
      cd ~/local/ghes-mirva-server
-
      go build && ./ghes-mirva-server --verbosity debug start
    #+END_SRC
+
+** Start in vs code debugger via launch.json
+    Matching the command
+    #+BEGIN_SRC sh 
+      ./ghes-mirva-server --verbosity debug start
+    #+END_SRC
+
+    #+begin_src javascript
+      {
+          "version": "0.2.0",
+          "configurations": [
+              {
+                  "name": "Launch Package",
+                  "type": "go",
+                  "request": "launch",
+                  "mode": "auto",
+                  "program": "${workspaceFolder}",
+                  "buildFlags": [],
+                  "args": [
+                      "--verbosity", "debug",
+                      "start"
+                  ]
+              }
+          ]
+      }
+    #+end_src
+
 
 ** DONE Request: mrva submit
    #+BEGIN_SRC sh 
@@ -291,5 +317,3 @@
 
 * TODO Include Context in request propagation
    https://pkg.go.dev/context#Context
-
-     

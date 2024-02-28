@@ -255,7 +255,7 @@ func (sn MirvaSession) extract_tgz(qp string) error {
 		slog.Error("unable to save querypack body decoding error", "path", fpath)
 		return err
 	} else {
-		slog.Info("querypack saved to ", "path", fpath)
+		slog.Info("Query pack saved to ", "path", fpath)
 	}
 	sn.query_pack.tgz_filepath = fpath
 	return nil
