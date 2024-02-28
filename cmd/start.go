@@ -107,6 +107,7 @@ func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	session.find_available_DBs()
 	session.start_analyses()
 	session.submit_response(w)
+	session.save()
 }
 
 func init() {

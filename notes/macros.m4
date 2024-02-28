@@ -1,7 +1,7 @@
 dnl Some quick and dirty macros to work around missing template functionality
 
 define(`arr_to_json', `
-func (sn MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
+func (sn *MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
 	r_ncd.RepositoryCount = len(sn.no_codeql_db_repos.ndb)
 	for _, repo := range sn.no_codeql_db_repos.ndb {
 		r_ncd.Repositories = append(r_ncd.Repositories,
@@ -12,7 +12,7 @@ func (sn MirvaSession) arr_to_json1(r_ncd NoCodeqlDBRepos) {
 arr_to_json()
 
 define(`arr_to_json', `
-func (sn MirvaSession) arr_to_json_$3() $1 {
+func (sn *MirvaSession) arr_to_json_$3() $1 {
 	var r__ $1
         r__.$4 = []string{}
 	r__.RepositoryCount = l`'en(sn.$2.orl)

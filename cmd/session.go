@@ -71,7 +71,7 @@ func _next_id() func() int {
 
 var next_id = _next_id()
 
-func (sn MirvaSession) submit_response(w http.ResponseWriter) {
+func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 
 	slog.Debug("Form and send response for submitted analysis job", "id", sn.id)
 
@@ -118,7 +118,7 @@ func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 /*
 See macros.m4 for generating these
 */
-func (sn MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
+func (sn *MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
 	var r__ NoCodeqlDBRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.no_codeql_db_repos.orl)
@@ -129,7 +129,7 @@ func (sn MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
 	return r__
 }
 
-func (sn MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
+func (sn *MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
 	var r__ AccessMismatchRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.access_mismatch_repos.orl)
@@ -140,7 +140,7 @@ func (sn MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
 	return r__
 }
 
-func (sn MirvaSession) arr_to_json_OLR() OverLimitRepos {
+func (sn *MirvaSession) arr_to_json_OLR() OverLimitRepos {
 	var r__ OverLimitRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.over_limit_repos.orl)
@@ -151,7 +151,7 @@ func (sn MirvaSession) arr_to_json_OLR() OverLimitRepos {
 	return r__
 }
 
-func (sn MirvaSession) arr_to_json_NFR() NotFoundRepos {
+func (sn *MirvaSession) arr_to_json_NFR() NotFoundRepos {
 	var r__ NotFoundRepos
 	r__.RepositoryFullNames = []string{}
 	r__.RepositoryCount = len(sn.not_found_repos.orl)
@@ -166,7 +166,7 @@ func (sn MirvaSession) arr_to_json_NFR() NotFoundRepos {
 end generated code
 */
 
-func (sn MirvaSession) start_analyses() {
+func (sn *MirvaSession) start_analyses() {
 	// TODO
 	slog.Debug("Starting codeql database analyze jobs")
 }
@@ -177,7 +177,7 @@ func (sn MirvaSession) start_analyses() {
 //	"repositories": "[google/flatbuffers]"
 //	"query_pack":
 //	    base64 encoded gzipped tar file, contents {...}
-func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
+func (sn *MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 	slog.Debug("Collecting session info")
 
 	if r.Body == nil {
@@ -232,7 +232,7 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (sn MirvaSession) extract_tgz(qp string) error {
+func (sn *MirvaSession) extract_tgz(qp string) error {
 	// These are decoded manually via
 	//    base64 -d < foo1 | gunzip | tar t | head -20
 	// base64 decode the body
@@ -315,12 +315,12 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 // 	   -j8 \
 // 	   -- $DBPATH $QUERYPACKS
 
-func (sn MirvaSession) save() {
+func (sn *MirvaSession) save() {
 	// sqlite state retention
 	// TODO
 }
 
-func (sn MirvaSession) load() {
+func (sn *MirvaSession) load() {
 	// sqlite state retention
 	// TODO
 }
@@ -328,7 +328,7 @@ func (sn MirvaSession) load() {
 //		Determine for which repositories codeql databases are available.
 //
 //	 Those will be the analysis_repos.  The rest will be skipped.
-func (sn MirvaSession) find_available_DBs() {
+func (sn *MirvaSession) find_available_DBs() {
 
 	slog.Debug("Looking for available CodeQL databases")
 
