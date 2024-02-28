@@ -73,6 +73,8 @@ var next_id = _next_id()
 
 func (sn MirvaSession) submit_response(w http.ResponseWriter) {
 
+	slog.Debug("Form and send response for submitted analysis job", "id", sn.id)
+
 	// Construct the response bottom-up
 	var m_cr ControllerRepo
 	var m_ac Actor
@@ -152,6 +154,7 @@ func (sn MirvaSession) arr_to_json_NFR(r_nfr NotFoundRepos) {
 
 func (sn MirvaSession) start_analyses() {
 	// TODO
+	slog.Debug("Starting codeql database analyze jobs")
 }
 
 // Collect the following info from the request body
@@ -161,6 +164,8 @@ func (sn MirvaSession) start_analyses() {
 //	"query_pack":
 //	    base64 encoded gzipped tar file, contents {...}
 func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("Collecting session info")
+
 	if r.Body == nil {
 		err := "Missing request body"
 		log.Println(err)
@@ -203,7 +208,7 @@ func (sn MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 	for _, v := range msg.Repositories {
 		t := strings.Split(v, "/")
 		if len(t) != 2 {
-			slog.Error("Invalid owner / r entry", "entry", t)
+			slog.Error("Invalid owner / repository entry", "entry", t)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		sn.repositories = append(sn.repositories, owner_repo_loc{t[0], t[1], nil})
@@ -217,6 +222,8 @@ func (sn MirvaSession) extract_tgz(qp string) error {
 	// These are decoded manually via
 	//    base64 -d < foo1 | gunzip | tar t | head -20
 	// base64 decode the body
+	slog.Debug("Extracting query pack")
+
 	tgz, err := base64.StdEncoding.DecodeString(qp)
 	if err != nil {
 		slog.Error("querypack body decoding error:", err)
@@ -308,6 +315,9 @@ func (sn MirvaSession) load() {
 //
 //	 Those will be the analysis_repos.  The rest will be skipped.
 func (sn MirvaSession) find_available_DBs() {
+
+	slog.Debug("Looking for available CodeQL databases")
+
 	sn.load()
 
 	cwd, err := os.Getwd()

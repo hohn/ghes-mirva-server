@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -97,9 +98,7 @@ func MirvaRequestID(w http.ResponseWriter, r *http.Request) {
 
 func MirvaRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	LogAbove(LogWarning, "New mrva run from (%s,%s)\n",
-		vars["owner"],
-		vars["repo"])
+	slog.Info("New mrva run ", "owner", vars["owner"], "repo", vars["repo"])
 	session := new(MirvaSession)
 	session.id = next_id()
 	session.owner = vars["owner"]

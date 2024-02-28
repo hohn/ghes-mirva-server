@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -58,20 +59,29 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	rootCmd.Flags().StringVar(&Backend, "backend", "local", `Backend to use.
-
 	Currently available:
 	- local
 	`)
 
-	rootCmd.PersistentFlags().IntVar(&Verbosity, "verbosity", 1, `Logging verbosity, higher logs more:
-		
-	1 = Fatal
-	2 = Error
-	3 = Warning
-	4 = Info
-	5 = Trace
-	6 = All
+	var logging_verbosity string
+	rootCmd.Flags().StringVar(&logging_verbosity, "verbosity", "info", `Logging verbosity, from least to most verbose: 
+	- error
+	- warn
+	- info
+	- debug
 	`)
+	switch logging_verbosity {
+	case "debug":
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	case "info":
+		slog.SetLogLoggerLevel(slog.LevelInfo)
+	case "warn":
+		slog.SetLogLoggerLevel(slog.LevelWarn)
+	case "error":
+		slog.SetLogLoggerLevel(slog.LevelError)
+	default:
+		log.Printf("Invalid logging verbosity level: %s", logging_verbosity)
+	}
 }
 
 var Backend string = "local"
