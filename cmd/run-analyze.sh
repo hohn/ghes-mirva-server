@@ -1,55 +1,72 @@
-#!/bin/bash
+#!/bin/bash -x -e
 
-#* Minimal setup to run analysis using information provided by a request
+#*    Minimal setup to run analysis using information provided by a request
 
-#*    Prep work before running the command
-# 
-# cd ~/local/ghes-mirva-server
-# codeql database analyze --format=sarif-latest --rerun \
-#        --output $QUERYOUT \
-#        -j8 \
-#        -- $DBPATH $QUERYPACK
-
-
-#**        Extract database
-cd `dirname $DBPATH`
-unzip -q `basename $DBPATH`
-if [ $? -ne 0 ]; then
-   echo "DB extraction failed"
-fi
-
-#   Extract query pack
-cd `dirname $QUERYPACK`
-qp=`basename $QUERYPACK`
-mkdir ${qp/.tgz/}
-cd ${qp/.tgz/}
-tar zxf ../$qp
-if [ $? -ne 0 ]; then
-   echo "query pack extraction failed"
-fi
-fqp=`pwd`
-
-#**        Prepare target directory
-mkdir -p `dirname $QUERYOUT`
-
-#*    Given output saved by the server and the above preparation, 
-QUERYPACK=/Users/hohn/local/ghes-mirva-server/querypack-93522.tgz
+#*    Take output saved by the server
+QUERYPACKID=93522
+QUERYLANGUAGE=cpp
 
 # and
-DBPATH=/Users/hohn/local/ghes-mirva-server/codeql/dbs/google/flatbuffers/google_flatbuffers_db.zip
-QUERYOUT=/Users/hohn/local/ghes-mirva-server/codeql/sarif/localrun/google/flatbuffers/google_flatbuffers.sarif
+DBOWNER=google
+DBREPO=flatbuffers
+
+# set up derived paths
+GMSROOT=/Users/hohn/local/ghes-mirva-server
+
+DBPATH=$GMSROOT/var/codeql/dbs/$DBOWNER/$DBREPO
+DBZIP=$GMSROOT/codeql/dbs/$DBOWNER/$DBREPO/${DBOWNER}_${DBREPO}_db.zip
+DBEXTRACT=$GMSROOT/var/codeql/dbs/$DBOWNER/$DBREPO
+
+QUERYPACK=$GMSROOT/var/codeql/querypacks/qp-$QUERYPACKID.tgz
+QUERYEXTRACT=$GMSROOT/var/codeql/querypacks/qp-$QUERYPACKID
+
+QUERYOUTD=$GMSROOT/var/codeql/sarif/localrun/$DBOWNER/$DBREPO
+QUERYOUTF=$QUERYOUTD/${DBOWNER}_${DBREPO}.sarif
+
+#*    Check variable values
+sv() {
+    printf "%s\t%s\n" $1 ${!1}
+}
+{
+    echo
+    sv DBPATH
+    sv DBZIP
+    sv DBEXTRACT 
+    echo
+    sv QUERYPACK
+    sv QUERYEXTRACT
+    sv QUERYOUTD
+    sv QUERYOUTF
+} 
+
+#*    Prep work before running the command
+
+#**        Extract database
+mkdir -p  $DBEXTRACT && cd $DBEXTRACT
+unzip -q $DBZIP
+
+#   Extract query pack
+mkdir -p $QUERYEXTRACT && cd $QUERYEXTRACT
+tar zxf $QUERYPACK
+
+#**        Prepare target directory
+mkdir -p $QUERYOUTD
 
 #*    run database analyze
-cd ~/local/ghes-mirva-server
+cd $GMSROOT
 codeql database analyze --format=sarif-latest --rerun \
-       --output $QUERYOUT \
+       --output $QUERYOUTF \
        -j8 \
-       -- `dirname $DBPATH`/cpp $fqp
+       -- $DBPATH/$QUERYLANGUAGE $QUERYEXTRACT
 
-# Check for output
-ls -la $QUERYOUT
+#*    report result
+printf "output in %s\n" $QUERYOUTF
 
-#*    manually) Compare local output to reference
-jq . < $QUERYOUT > local-1.sarif
-jq . < ${QUERYOUT/localrun/reference} > reference-1.sarif
-diff local-1.sarif reference-1.sarif
+#*    Manual checks
+#**        Check for output
+ls -la $QUERYOUTD
+
+#**        compare local output to reference
+jq . < $QUERYOUTF > 10-local.sarif
+jq . < $GMSROOT/codeql/sarif/reference/$DBOWNER/$DBREPO/${DBOWNER}_${DBREPO}.sarif > 10-reference.sarif
+diff 10-*.sarif

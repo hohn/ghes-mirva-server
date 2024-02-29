@@ -254,7 +254,15 @@ func (sn *MirvaSession) extract_tgz(qp string) error {
 		slog.Error("No working directory")
 		panic(err)
 	}
-	fpath := path.Join(cwd, fmt.Sprintf("querypack-%d.tgz", sn.id))
+
+	dirpath := path.Join(cwd, "var", "codeql", "querypacks")
+	if err := os.MkdirAll(dirpath, 0755); err != nil {
+		slog.Error("Unable to create query pack output directory",
+			"dir", dirpath)
+		return err
+	}
+
+	fpath := path.Join(dirpath, fmt.Sprintf("qp-%d.tgz", sn.id))
 	err = os.WriteFile(fpath, tgz, 0644)
 	if err != nil {
 		slog.Error("unable to save querypack body decoding error", "path", fpath)
