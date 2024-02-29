@@ -19,6 +19,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/hohn/ghes-mirva-server/analyze"
 )
 
 type owner_repo_loc struct {
@@ -171,6 +173,7 @@ end generated code
 func (sn *MirvaSession) start_analyses() {
 	// TODO start_analyses()
 	slog.Debug("Starting codeql database analyze jobs")
+	analyze.RunWorkers()
 }
 
 // Collect the following info from the request body
@@ -306,16 +309,6 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 	err := dec.Decode(&m)
 	return m, err
 }
-
-// TODO For every repository with a built database we ultimately run
-// the queries to create the sarif file:
-//
-// cd ~/local
-// codeql database analyze --format=sarif-latest --rerun \
-// 	   --output $QUERYNAME.sarif \
-// 	   --search-path $QLLIB \
-// 	   -j8 \
-// 	   -- $DBPATH $QUERYPACKS
 
 func (sn *MirvaSession) save() {
 	// TODO sqlite state retention

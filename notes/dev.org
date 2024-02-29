@@ -184,6 +184,8 @@
    - [ ] Internal processing follows from the request payload, response body, and
      status request information
 
+     See [[file:~/local/ghes-mirva-server/cmd/run-analyze.sh::Minimal setup to run analysis using information provided by a request]]
+
    - [X] POST request reponse body in full; much of this response will not be used
      further, so we provide dummy values for those entries.
 
