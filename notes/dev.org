@@ -295,8 +295,11 @@
        }
      #+END_SRC
 
-** NEXT mrva analysis, post-submit
+** DONE mrva analysis, post-submit
    See [[file:~/local/ghes-mirva-server/cmd/run-analysis.sh::!/bin/bash -x -e]]
+
+** TODO MRVA status reporting
+** TODO MRVA downloading
 
 ** Client Note
    The client has to submit queries from the latest version of codeql, currently

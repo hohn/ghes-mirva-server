@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/hohn/ghes-mirva-server/analyze"
 	"github.com/spf13/cobra"
 )
 
@@ -59,10 +60,11 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 
 func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	LogAbove(LogWarning, "mrva status request for (%s,%s,%s)\n",
-		vars["owner"],
-		vars["repo"],
-		vars["codeql_variant_analysis_id"])
+	slog.Info("mrva status request for ",
+		"owner", vars["owner"],
+		"repo", vars["repo"],
+		"codeql_variant_analysis_id", vars["codeql_variant_analysis_id"])
+	analyze.StatusResponse(w)
 }
 
 func MirvaDownLoad2(w http.ResponseWriter, r *http.Request) {

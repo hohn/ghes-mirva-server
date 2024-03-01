@@ -1,4 +1,4 @@
-package cmd
+package api
 
 type ControllerRepo struct {
 	ID               int      `json:"id"`
@@ -117,4 +117,34 @@ type SubmitResponse struct {
 	UpdatedAt           string              `json:"updated_at"`
 	Status              string              `json:"status"`
 	SkippedRepositories SkippedRepositories `json:"skipped_repositories"`
+}
+
+type Repository struct {
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	FullName        string `json:"full_name"`
+	Private         bool   `json:"private"`
+	StargazersCount int    `json:"stargazers_count"`
+	UpdatedAt       string `json:"updated_at"`
+}
+
+type ScannedRepo struct {
+	Repository        Repository `json:"repository"`
+	AnalysisStatus    string     `json:"analysis_status"`
+	ResultCount       int        `json:"result_count"`
+	ArtifactSizeBytes int        `json:"artifact_size_in_bytes"`
+}
+
+type StatusResponse struct {
+	SessionId            int                 `json:"id"`
+	ControllerRepo       ControllerRepo      `json:"controller_repo"`
+	Actor                Actor               `json:"actor"`
+	QueryLanguage        string              `json:"query_language"`
+	QueryPackURL         string              `json:"query_pack_url"`
+	CreatedAt            string              `json:"created_at"`
+	UpdatedAt            string              `json:"updated_at"`
+	ActionsWorkflowRunID int                 `json:"actions_workflow_run_id"`
+	Status               string              `json:"status"`
+	ScannedRepositories  []ScannedRepo       `json:"scanned_repositories"`
+	SkippedRepositories  SkippedRepositories `json:"skipped_repositories"`
 }

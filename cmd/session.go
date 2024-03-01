@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/hohn/ghes-mirva-server/analyze"
+	"github.com/hohn/ghes-mirva-server/api"
 )
 
 type owner_repo_loc struct {
@@ -80,8 +81,8 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 
 	// Construct the response bottom-up
 	// TODO functional style
-	var m_cr ControllerRepo
-	var m_ac Actor
+	var m_cr api.ControllerRepo
+	var m_ac api.Actor
 
 	r_nfr := sn.arr_to_json_NFR()
 
@@ -92,9 +93,9 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 	// TODO fill these
 	r_olr := sn.arr_to_json_OLR()
 
-	m_skip := SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
+	m_skip := api.SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
 
-	var m_sr SubmitResponse
+	var m_sr api.SubmitResponse
 	m_sr.Actor = m_ac
 	m_sr.ControllerRepo = m_cr
 	m_sr.ID = sn.id
@@ -122,8 +123,8 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 /*
 See macros.m4 for generating these
 */
-func (sn *MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
-	var r__ NoCodeqlDBRepos
+func (sn *MirvaSession) arr_to_json_NCDB() api.NoCodeqlDBRepos {
+	var r__ api.NoCodeqlDBRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.no_codeql_db_repos.orl)
 	for _, repo := range sn.no_codeql_db_repos.orl {
@@ -133,8 +134,8 @@ func (sn *MirvaSession) arr_to_json_NCDB() NoCodeqlDBRepos {
 	return r__
 }
 
-func (sn *MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
-	var r__ AccessMismatchRepos
+func (sn *MirvaSession) arr_to_json_AMR() api.AccessMismatchRepos {
+	var r__ api.AccessMismatchRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.access_mismatch_repos.orl)
 	for _, repo := range sn.access_mismatch_repos.orl {
@@ -144,8 +145,8 @@ func (sn *MirvaSession) arr_to_json_AMR() AccessMismatchRepos {
 	return r__
 }
 
-func (sn *MirvaSession) arr_to_json_OLR() OverLimitRepos {
-	var r__ OverLimitRepos
+func (sn *MirvaSession) arr_to_json_OLR() api.OverLimitRepos {
+	var r__ api.OverLimitRepos
 	r__.Repositories = []string{}
 	r__.RepositoryCount = len(sn.over_limit_repos.orl)
 	for _, repo := range sn.over_limit_repos.orl {
@@ -155,8 +156,8 @@ func (sn *MirvaSession) arr_to_json_OLR() OverLimitRepos {
 	return r__
 }
 
-func (sn *MirvaSession) arr_to_json_NFR() NotFoundRepos {
-	var r__ NotFoundRepos
+func (sn *MirvaSession) arr_to_json_NFR() api.NotFoundRepos {
+	var r__ api.NotFoundRepos
 	r__.RepositoryFullNames = []string{}
 	r__.RepositoryCount = len(sn.not_found_repos.orl)
 	for _, repo := range sn.not_found_repos.orl {
