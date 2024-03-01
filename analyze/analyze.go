@@ -52,7 +52,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 			slog.Error("Analysis command failed: ", "job", job, "output", out)
 			continue
 		}
-		slog.Debug("Analysis: finished", "job", job)
+		slog.Debug("Analysis run finished", "job", job)
 
 		// Get the SARIF ouput location
 		sr := bufio.NewScanner(bytes.NewReader(out))
@@ -60,13 +60,13 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 		for {
 			more := sr.Scan()
 			if !more {
-				slog.Error("RunJob: analysis command failed to report result: ", "output", out)
+				slog.Error("Analysis run failed to report result: ", "output", out)
 				break
 			}
 			fields := strings.Fields(sr.Text())
 			if len(fields) >= 3 {
 				if fields[0] == "run-analysis-output" {
-					slog.Debug("Analysis finished: ", "job", job, "location", fields[2])
+					slog.Debug("Analysis run successful: ", "job", job, "location", fields[2])
 					results <- AnalyzeResult{fields[2]}
 					break
 				}

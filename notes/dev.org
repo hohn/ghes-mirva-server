@@ -296,7 +296,17 @@
      #+END_SRC
 
 ** NEXT mrva analysis, post-submit
-   See [[file:~/local/ghes-mirva-server/cmd/run-analyze.sh::Minimal setup to run analysis using information provided by a request]]
+   See [[file:~/local/ghes-mirva-server/cmd/run-analysis.sh::!/bin/bash -x -e]]
+
+** Client Note
+   The client has to submit queries from the latest version of codeql, currently
+   : CodeQL command-line toolchain release 2.16.3
+   to avoid the error
+   #+BEGIN_SRC text
+     The database may be too new for the QL libraries the query is using; try
+     upgrading them.
+   #+END_SRC
+   here on the server.
 
 ** NEXT mrva request testing via client
    The gh-mrva client uses gh.RESTClient(), so URL overrides are there.
