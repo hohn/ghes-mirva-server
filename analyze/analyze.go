@@ -1,7 +1,14 @@
 package analyze
 
 import (
+	"bufio"
+	"bytes"
 	"log/slog"
+	"os"
+	"os/exec"
+	"path"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -11,11 +18,15 @@ var (
 )
 
 type AnalyzeJob struct {
-	id int
+	QueryPackId   int
+	QueryLanguage string
+
+	DBOwner string
+	DBRepo  string
 }
 
 type AnalyzeResult struct {
-	id int
+	RunAnalysisOutput string
 }
 
 func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
@@ -24,31 +35,52 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 		job = <-jobs
 		slog.Debug("Picking up job", "job", job, "worker", wid)
 
-		// And run it
+		cwd, err := os.Getwd()
+		if err != nil {
+			slog.Error("RunJob: cwd problem: ", "error", err)
+			continue
+		}
 
-		// TODO For every repository with a built database we ultimately run
-		// the queries to create the sarif file.  See
-		//        cmd/run-analyze.sh
-		// for details
+		slog.Debug("Analysis: running", "job", job)
+		cmd := exec.Command(path.Join(cwd, "cmd", "run-analysis.sh"),
+			strconv.FormatInt(int64(job.QueryPackId), 10),
+			job.QueryLanguage, job.DBOwner, job.DBRepo)
 
-		// results <- job * 2
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			slog.Error("Analysis command failed: exit code: ", "error", err, "job", job)
+			slog.Error("Analysis command failed: ", "job", job, "output", out)
+			continue
+		}
+		slog.Debug("Analysis: finished", "job", job)
+
+		// Get the SARIF ouput location
+		sr := bufio.NewScanner(bytes.NewReader(out))
+		sr.Split(bufio.ScanLines)
+		for {
+			more := sr.Scan()
+			if !more {
+				slog.Error("RunJob: analysis command failed to report result: ", "output", out)
+				break
+			}
+			fields := strings.Fields(sr.Text())
+			if len(fields) >= 3 {
+				if fields[0] == "run-analysis-output" {
+					slog.Debug("Analysis finished: ", "job", job, "location", fields[2])
+					results <- AnalyzeResult{fields[2]}
+					break
+				}
+			}
+		}
 	}
 }
 
-func RunWorkers() {
-	// TODO as cli arg
-
-	// for a := 1; a <= numJobs; a++ {
-	// 	<-results
-	// }
-}
-
 func init() {
-	Jobs = make(chan AnalyzeJob)
-	Results = make(chan AnalyzeResult)
+	Jobs = make(chan AnalyzeJob, 10)
+	Results = make(chan AnalyzeResult, 10)
 	NumWorkers = 2
 
-	for wid := 1; wid <= NumWorkers; wid++ {
-		go worker(wid, Jobs, Results)
+	for id := 1; id <= NumWorkers; id++ {
+		go worker(id, Jobs, Results)
 	}
 }

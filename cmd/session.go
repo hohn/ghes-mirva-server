@@ -171,9 +171,18 @@ end generated code
 */
 
 func (sn *MirvaSession) start_analyses() {
-	// TODO start_analyses()
-	slog.Debug("Starting codeql database analyze jobs")
-	analyze.RunWorkers()
+	slog.Debug("Queueing codeql database analyze jobs")
+
+	for orl := range sn.analysis_repos {
+		info := analyze.AnalyzeJob{
+			QueryPackId:   sn.id,
+			QueryLanguage: sn.language,
+
+			DBOwner: orl.owner,
+			DBRepo:  orl.repo,
+		}
+		analyze.Jobs <- info
+	}
 }
 
 // Collect the following info from the request body
