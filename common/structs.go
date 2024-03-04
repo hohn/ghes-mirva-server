@@ -6,10 +6,9 @@ type AnalyzeResult struct {
 	RunAnalysisOutput string
 }
 
-type OwnerRepoLoc struct {
-	Owner    string
-	Repo     string
-	Location DBLocation
+type OwnerRepo struct {
+	Owner string
+	Repo  string
 }
 
 type B64GzTar struct {
@@ -35,7 +34,7 @@ type JobInfo struct {
 }
 type JobSpec struct {
 	ID  int
-	Orl OwnerRepoLoc
+	Orl OwnerRepo
 }
 
 type Status int

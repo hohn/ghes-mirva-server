@@ -50,14 +50,14 @@ type MirvaSession struct {
 
 	query_pack   b64gztar
 	language     string
-	repositories []co.OwnerRepoLoc
+	repositories []co.OwnerRepo
 
 	access_mismatch_repos access_mismatch_repos
 	not_found_repos       not_found_repos
 	no_codeql_db_repos    no_codeql_db_repos
 	over_limit_repos      over_limit_repos
 
-	analysis_repos map[co.OwnerRepoLoc]DBLocation
+	analysis_repos map[co.OwnerRepo]DBLocation
 }
 
 func _next_id() func() int {
@@ -237,7 +237,7 @@ func (sn *MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		sn.repositories = append(sn.repositories,
-			co.OwnerRepoLoc{t[0], t[1], co.DBLocation{""}})
+			co.OwnerRepo{t[0], t[1]})
 	}
 
 	sn.save()
@@ -350,7 +350,7 @@ func (sn *MirvaSession) find_available_DBs() {
 	}
 
 	if sn.analysis_repos == nil {
-		sn.analysis_repos = map[co.OwnerRepoLoc]DBLocation{}
+		sn.analysis_repos = map[co.OwnerRepo]DBLocation{}
 	}
 
 	// We're looking for paths like
@@ -399,23 +399,23 @@ type skipped_repo_element interface {
 	Count_Key() string
 	Count() int
 	Repository_Key() string
-	Repository() co.OwnerRepoLoc
+	Repository() co.OwnerRepo
 }
 
 type access_mismatch_repos struct {
-	orl []co.OwnerRepoLoc
+	orl []co.OwnerRepo
 }
 
 type no_codeql_db_repos struct {
-	orl []co.OwnerRepoLoc
+	orl []co.OwnerRepo
 }
 
 type over_limit_repos struct {
-	orl []co.OwnerRepoLoc
+	orl []co.OwnerRepo
 }
 
 type not_found_repos struct {
-	orl []co.OwnerRepoLoc
+	orl []co.OwnerRepo
 }
 
 func (n not_found_repos) Reason() string {
@@ -434,7 +434,7 @@ func (n not_found_repos) Repository_Key() string {
 	return "repository_full_names"
 }
 
-func (n not_found_repos) Repository() co.OwnerRepoLoc {
+func (n not_found_repos) Repository() co.OwnerRepo {
 	return n.orl[0]
 }
 
@@ -444,7 +444,7 @@ func (u over_limit_repos) Count() int {
 func (u over_limit_repos) Repository_Key() string {
 	return "over_limit_repos"
 }
-func (u over_limit_repos) Repository() co.OwnerRepoLoc {
+func (u over_limit_repos) Repository() co.OwnerRepo {
 	return u.orl[0]
 }
 

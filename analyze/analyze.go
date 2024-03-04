@@ -26,7 +26,7 @@ type AnalyzeJob struct {
 	QueryPackId   int
 	QueryLanguage string
 
-	ORL common.OwnerRepoLoc
+	ORL common.OwnerRepo
 }
 
 func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult) {

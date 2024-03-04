@@ -17,19 +17,19 @@ var (
 	mutex  sync.Mutex
 )
 
-func SetResult(sessionid int, orl co.OwnerRepoLoc, ar co.AnalyzeResult) {
+func SetResult(sessionid int, orl co.OwnerRepo, ar co.AnalyzeResult) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	result[co.JobSpec{sessionid, orl}] = ar
 }
 
-func SetStatus(sessionid int, orl co.OwnerRepoLoc, s co.Status) {
+func SetStatus(sessionid int, orl co.OwnerRepo, s co.Status) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	status[co.JobSpec{sessionid, orl}] = s
 }
 
-func GetStatus(sessionid int, orl co.OwnerRepoLoc) co.Status {
+func GetStatus(sessionid int, orl co.OwnerRepo) co.Status {
 	mutex.Lock()
 	defer mutex.Unlock()
 	return status[co.JobSpec{sessionid, orl}]
