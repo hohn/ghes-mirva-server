@@ -7,9 +7,12 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/hohn/ghes-mirva-server/analyze"
+	co "github.com/hohn/ghes-mirva-server/common"
+	"github.com/hohn/ghes-mirva-server/store"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +67,28 @@ func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 		"owner", vars["owner"],
 		"repo", vars["repo"],
 		"codeql_variant_analysis_id", vars["codeql_variant_analysis_id"])
-	analyze.StatusResponse(w)
+	id, err := strconv.Atoi(vars["codeql_variant_analysis_id"])
+	if err != nil {
+		slog.Error("Variant analysis is is not integer", "id",
+			vars["codeql_variant_analysis_id"])
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	js := co.JobSpec{
+		ID: id,
+		Orl: co.OwnerRepoLoc{
+			Owner: vars["owner"],
+			Repo:  vars["repo"],
+			Location: co.DBLocation{
+				DBPATH: "",
+			},
+		},
+	}
+
+	analyze.StatusResponse(w,
+		js,
+		store.GetJobInfo(js),
+	)
 }
 
 func MirvaDownLoad2(w http.ResponseWriter, r *http.Request) {

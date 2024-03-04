@@ -7,47 +7,38 @@ import (
 	"sync"
 
 	"github.com/hohn/ghes-mirva-server/api"
-	"github.com/hohn/ghes-mirva-server/common"
 	co "github.com/hohn/ghes-mirva-server/common"
 )
 
-type Status int
-
-const (
-	StatusInProgress = iota
-	StatusQueued
-	StatusError
-	StatusSuccess
-	StatusFailed
-)
-
-type JobSpec struct {
-	id  int
-	orl co.OwnerRepoLoc
-}
-
 var (
-	status map[JobSpec]Status
-	result map[JobSpec]common.AnalyzeResult
+	info   map[co.JobSpec]co.JobInfo
+	status map[co.JobSpec]co.Status
+	result map[co.JobSpec]co.AnalyzeResult
 	mutex  sync.Mutex
 )
 
 func SetResult(sessionid int, orl co.OwnerRepoLoc, ar co.AnalyzeResult) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	result[JobSpec{sessionid, orl}] = ar
+	result[co.JobSpec{sessionid, orl}] = ar
 }
 
-func SetStatus(sessionid int, orl co.OwnerRepoLoc, s Status) {
+func SetStatus(sessionid int, orl co.OwnerRepoLoc, s co.Status) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	status[JobSpec{sessionid, orl}] = s
+	status[co.JobSpec{sessionid, orl}] = s
 }
 
-func GetStatus(sessionid int, orl co.OwnerRepoLoc) Status {
+func GetStatus(sessionid int, orl co.OwnerRepoLoc) co.Status {
 	mutex.Lock()
 	defer mutex.Unlock()
-	return status[JobSpec{sessionid, orl}]
+	return status[co.JobSpec{sessionid, orl}]
+}
+
+func GetJobInfo(js co.JobSpec) co.JobInfo {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return info[js]
 }
 
 func StatusResponse() {

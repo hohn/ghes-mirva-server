@@ -42,7 +42,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult
 		}
 
 		slog.Debug("Analysis: running", "job", job)
-		store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusQueued)
+		store.SetStatus(job.MirvaRequestID, job.ORL, common.StatusQueued)
 		cmd := exec.Command(path.Join(cwd, "cmd", "run-analysis.sh"),
 			strconv.FormatInt(int64(job.QueryPackId), 10),
 			job.QueryLanguage, job.ORL.Owner, job.ORL.Repo)
@@ -51,7 +51,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult
 		if err != nil {
 			slog.Error("Analysis command failed: exit code: ", "error", err, "job", job)
 			slog.Error("Analysis command failed: ", "job", job, "output", out)
-			store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusError)
+			store.SetStatus(job.MirvaRequestID, job.ORL, common.StatusError)
 			continue
 		}
 		slog.Debug("Analysis run finished", "job", job)
@@ -71,7 +71,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult
 					slog.Debug("Analysis run successful: ", "job", job, "location", fields[2])
 					res := common.AnalyzeResult{fields[2]}
 					results <- res
-					store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusSuccess)
+					store.SetStatus(job.MirvaRequestID, job.ORL, common.StatusSuccess)
 					store.SetResult(job.MirvaRequestID, job.ORL, res)
 					break
 				}

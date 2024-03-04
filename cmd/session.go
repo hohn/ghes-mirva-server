@@ -178,7 +178,7 @@ func (sn *MirvaSession) start_analyses() {
 			ORL: orl,
 		}
 		analyze.Jobs <- info
-		store.SetStatus(sn.id, orl, store.StatusQueued)
+		store.SetStatus(sn.id, orl, co.StatusQueued)
 	}
 }
 
@@ -236,7 +236,8 @@ func (sn *MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 			slog.Error("Invalid owner / repository entry", "entry", t)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		sn.repositories = append(sn.repositories, co.OwnerRepoLoc{t[0], t[1], nil})
+		sn.repositories = append(sn.repositories,
+			co.OwnerRepoLoc{t[0], t[1], co.DBLocation{""}})
 	}
 
 	sn.save()
