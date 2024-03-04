@@ -1,5 +1,9 @@
 package common
 
+type AnalyzeResult struct {
+	RunAnalysisOutput string
+}
+
 type OwnerRepoLoc struct {
 	Owner    string
 	Repo     string

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/hohn/ghes-mirva-server/api"
+	"github.com/hohn/ghes-mirva-server/common"
 	co "github.com/hohn/ghes-mirva-server/common"
 )
 
@@ -15,7 +16,8 @@ type Status int
 const (
 	StatusInProgress = iota
 	StatusQueued
-	StatusSucceeded
+	StatusError
+	StatusSuccess
 	StatusFailed
 )
 
@@ -26,8 +28,15 @@ type JobSpec struct {
 
 var (
 	status map[JobSpec]Status
+	result map[JobSpec]common.AnalyzeResult
 	mutex  sync.Mutex
 )
+
+func SetResult(sessionid int, orl co.OwnerRepoLoc, ar co.AnalyzeResult) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	result[JobSpec{sessionid, orl}] = ar
+}
 
 func SetStatus(sessionid int, orl co.OwnerRepoLoc, s Status) {
 	mutex.Lock()

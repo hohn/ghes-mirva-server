@@ -175,8 +175,7 @@ func (sn *MirvaSession) start_analyses() {
 			QueryPackId:   sn.id,
 			QueryLanguage: sn.language,
 
-			DBOwner: orl.Owner,
-			DBRepo:  orl.Repo,
+			ORL: orl,
 		}
 		analyze.Jobs <- info
 		store.SetStatus(sn.id, orl, store.StatusQueued)

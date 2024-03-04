@@ -9,27 +9,27 @@ import (
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/hohn/ghes-mirva-server/common"
+	"github.com/hohn/ghes-mirva-server/store"
 )
 
 var (
 	NumWorkers int
 	Jobs       chan AnalyzeJob
-	Results    chan AnalyzeResult
+	Results    chan common.AnalyzeResult
 )
 
 type AnalyzeJob struct {
+	MirvaRequestID int
+
 	QueryPackId   int
 	QueryLanguage string
 
-	DBOwner string
-	DBRepo  string
+	ORL common.OwnerRepoLoc
 }
 
-type AnalyzeResult struct {
-	RunAnalysisOutput string
-}
-
-func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
+func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult) {
 	var job AnalyzeJob
 	for {
 		job = <-jobs
@@ -42,14 +42,16 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 		}
 
 		slog.Debug("Analysis: running", "job", job)
+		store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusQueued)
 		cmd := exec.Command(path.Join(cwd, "cmd", "run-analysis.sh"),
 			strconv.FormatInt(int64(job.QueryPackId), 10),
-			job.QueryLanguage, job.DBOwner, job.DBRepo)
+			job.QueryLanguage, job.ORL.Owner, job.ORL.Repo)
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			slog.Error("Analysis command failed: exit code: ", "error", err, "job", job)
 			slog.Error("Analysis command failed: ", "job", job, "output", out)
+			store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusError)
 			continue
 		}
 		slog.Debug("Analysis run finished", "job", job)
@@ -67,7 +69,10 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 			if len(fields) >= 3 {
 				if fields[0] == "run-analysis-output" {
 					slog.Debug("Analysis run successful: ", "job", job, "location", fields[2])
-					results <- AnalyzeResult{fields[2]}
+					res := common.AnalyzeResult{fields[2]}
+					results <- res
+					store.SetStatus(job.MirvaRequestID, job.ORL, store.StatusSuccess)
+					store.SetResult(job.MirvaRequestID, job.ORL, res)
 					break
 				}
 			}
@@ -77,7 +82,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- AnalyzeResult) {
 
 func init() {
 	Jobs = make(chan AnalyzeJob, 10)
-	Results = make(chan AnalyzeResult, 10)
+	Results = make(chan common.AnalyzeResult, 10)
 	NumWorkers = 2
 
 	for id := 1; id <= NumWorkers; id++ {
