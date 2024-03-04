@@ -22,28 +22,24 @@ import (
 
 	"github.com/hohn/ghes-mirva-server/analyze"
 	"github.com/hohn/ghes-mirva-server/api"
+	co "github.com/hohn/ghes-mirva-server/common"
+	"github.com/hohn/ghes-mirva-server/store"
 )
-
-type owner_repo_loc struct {
-	owner    string
-	repo     string
-	location db_location
-}
 
 type b64gztar struct {
 	tgz_filepath string
 }
 
-type db_location interface {
+type DBLocation interface {
 	DBPATH() string
 }
 
-type db_location_local struct {
+type DBLocationLocal struct {
 	prefix  string
 	db_file string
 }
 
-func (dbl db_location_local) DBPATH() string {
+func (dbl DBLocationLocal) DBPATH() string {
 	return filepath.Join(dbl.prefix, dbl.db_file)
 }
 
@@ -54,14 +50,14 @@ type MirvaSession struct {
 
 	query_pack   b64gztar
 	language     string
-	repositories []owner_repo_loc
+	repositories []co.OwnerRepoLoc
 
 	access_mismatch_repos access_mismatch_repos
 	not_found_repos       not_found_repos
 	no_codeql_db_repos    no_codeql_db_repos
 	over_limit_repos      over_limit_repos
 
-	analysis_repos map[owner_repo_loc]db_location
+	analysis_repos map[co.OwnerRepoLoc]DBLocation
 }
 
 func _next_id() func() int {
@@ -129,7 +125,7 @@ func (sn *MirvaSession) arr_to_json_NCDB() api.NoCodeqlDBRepos {
 	r__.RepositoryCount = len(sn.no_codeql_db_repos.orl)
 	for _, repo := range sn.no_codeql_db_repos.orl {
 		r__.Repositories = append(r__.Repositories,
-			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+			fmt.Sprintf("%s/%s", repo.Owner, repo.Repo))
 	}
 	return r__
 }
@@ -140,7 +136,7 @@ func (sn *MirvaSession) arr_to_json_AMR() api.AccessMismatchRepos {
 	r__.RepositoryCount = len(sn.access_mismatch_repos.orl)
 	for _, repo := range sn.access_mismatch_repos.orl {
 		r__.Repositories = append(r__.Repositories,
-			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+			fmt.Sprintf("%s/%s", repo.Owner, repo.Repo))
 	}
 	return r__
 }
@@ -151,7 +147,7 @@ func (sn *MirvaSession) arr_to_json_OLR() api.OverLimitRepos {
 	r__.RepositoryCount = len(sn.over_limit_repos.orl)
 	for _, repo := range sn.over_limit_repos.orl {
 		r__.Repositories = append(r__.Repositories,
-			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+			fmt.Sprintf("%s/%s", repo.Owner, repo.Repo))
 	}
 	return r__
 }
@@ -162,7 +158,7 @@ func (sn *MirvaSession) arr_to_json_NFR() api.NotFoundRepos {
 	r__.RepositoryCount = len(sn.not_found_repos.orl)
 	for _, repo := range sn.not_found_repos.orl {
 		r__.RepositoryFullNames = append(r__.RepositoryFullNames,
-			fmt.Sprintf("%s/%s", repo.owner, repo.repo))
+			fmt.Sprintf("%s/%s", repo.Owner, repo.Repo))
 	}
 	return r__
 }
@@ -179,10 +175,11 @@ func (sn *MirvaSession) start_analyses() {
 			QueryPackId:   sn.id,
 			QueryLanguage: sn.language,
 
-			DBOwner: orl.owner,
-			DBRepo:  orl.repo,
+			DBOwner: orl.Owner,
+			DBRepo:  orl.Repo,
 		}
 		analyze.Jobs <- info
+		store.SetStatus(sn.id, orl, store.StatusQueued)
 	}
 }
 
@@ -240,7 +237,7 @@ func (sn *MirvaSession) collect_info(w http.ResponseWriter, r *http.Request) {
 			slog.Error("Invalid owner / repository entry", "entry", t)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		sn.repositories = append(sn.repositories, owner_repo_loc{t[0], t[1], nil})
+		sn.repositories = append(sn.repositories, co.OwnerRepoLoc{t[0], t[1], nil})
 	}
 
 	sn.save()
@@ -353,14 +350,14 @@ func (sn *MirvaSession) find_available_DBs() {
 	}
 
 	if sn.analysis_repos == nil {
-		sn.analysis_repos = map[owner_repo_loc]db_location{}
+		sn.analysis_repos = map[co.OwnerRepoLoc]DBLocation{}
 	}
 
 	// We're looking for paths like
 	// codeql/sarif/google/flatbuffers/google_flatbuffers.sarif
 	for _, rep := range sn.repositories {
-		dbPrefix := filepath.Join(cwd, "codeql", "dbs", rep.owner, rep.repo)
-		dbName := fmt.Sprintf("%s_%s_db.zip", rep.owner, rep.repo)
+		dbPrefix := filepath.Join(cwd, "codeql", "dbs", rep.Owner, rep.Repo)
+		dbName := fmt.Sprintf("%s_%s_db.zip", rep.Owner, rep.Repo)
 		dbPath := filepath.Join(dbPrefix, dbName)
 
 		if _, err := os.Stat(dbPath); errors.Is(err, fs.ErrNotExist) {
@@ -369,7 +366,7 @@ func (sn *MirvaSession) find_available_DBs() {
 			sn.not_found_repos.orl = append(sn.not_found_repos.orl, rep)
 		} else {
 			slog.Info("Found database for ", "owner/repo", rep, "path", dbPath)
-			sn.analysis_repos[rep] = db_location_local{dbPrefix, dbName}
+			sn.analysis_repos[rep] = DBLocationLocal{dbPrefix, dbName}
 		}
 	}
 
@@ -402,23 +399,23 @@ type skipped_repo_element interface {
 	Count_Key() string
 	Count() int
 	Repository_Key() string
-	Repository() owner_repo_loc
+	Repository() co.OwnerRepoLoc
 }
 
 type access_mismatch_repos struct {
-	orl []owner_repo_loc
+	orl []co.OwnerRepoLoc
 }
 
 type no_codeql_db_repos struct {
-	orl []owner_repo_loc
+	orl []co.OwnerRepoLoc
 }
 
 type over_limit_repos struct {
-	orl []owner_repo_loc
+	orl []co.OwnerRepoLoc
 }
 
 type not_found_repos struct {
-	orl []owner_repo_loc
+	orl []co.OwnerRepoLoc
 }
 
 func (n not_found_repos) Reason() string {
@@ -437,7 +434,7 @@ func (n not_found_repos) Repository_Key() string {
 	return "repository_full_names"
 }
 
-func (n not_found_repos) Repository() owner_repo_loc {
+func (n not_found_repos) Repository() co.OwnerRepoLoc {
 	return n.orl[0]
 }
 
@@ -447,7 +444,7 @@ func (u over_limit_repos) Count() int {
 func (u over_limit_repos) Repository_Key() string {
 	return "over_limit_repos"
 }
-func (u over_limit_repos) Repository() owner_repo_loc {
+func (u over_limit_repos) Repository() co.OwnerRepoLoc {
 	return u.orl[0]
 }
 

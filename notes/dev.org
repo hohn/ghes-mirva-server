@@ -298,6 +298,7 @@
 ** DONE mrva analysis, post-submit
    See [[file:~/local/ghes-mirva-server/cmd/run-analysis.sh::!/bin/bash -x -e]]
 
+** TODO MRVA state storage in memory
 ** TODO MRVA status reporting
 ** TODO MRVA downloading
 
