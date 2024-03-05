@@ -74,18 +74,26 @@ func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	js := co.JobSpec{
-		ID: id,
-		OwnerRepo: co.OwnerRepo{
-			Owner: vars["owner"],
-			Repo:  vars["repo"],
-		},
+	// The status reports one status for all jobs belonging to an id.
+	// So we simply report the status of a job as the status of all.
+	spec := store.GetJobList(id)
+	if spec == nil {
+		slog.Error("No jobs found for given job id",
+			"id", vars["codeql_variant_analysis_id"])
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
 	}
 
-	analyze.StatusResponse(w,
-		js,
-		store.GetJobInfo(js),
-	)
+	job := spec[0]
+
+	js := co.JobSpec{
+		ID:        job.QueryPackId,
+		OwnerRepo: job.ORL,
+	}
+
+	ji := store.GetJobInfo(js)
+
+	analyze.StatusResponse(w, js, ji)
 }
 
 func MirvaDownLoad2(w http.ResponseWriter, r *http.Request) {

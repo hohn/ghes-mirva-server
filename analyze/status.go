@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/hohn/ghes-mirva-server/api"
 	co "github.com/hohn/ghes-mirva-server/common"
@@ -18,6 +19,7 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 	all_scanned := []api.ScannedRepo{}
 	jobs := store.GetJobList(js.ID)
 	for _, job := range jobs {
+		astat := strconv.Itoa(int(store.GetStatus(js.ID, job.ORL))) // FIXME use named status
 		all_scanned = append(all_scanned,
 			api.ScannedRepo{
 				Repository: api.Repository{
@@ -28,23 +30,25 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 					StargazersCount: 0,
 					UpdatedAt:       ji.UpdatedAt,
 				},
-				AnalysisStatus:    ji.Status.StatusString(),
+				AnalysisStatus:    astat,
 				ResultCount:       0, // FIXME
 				ArtifactSizeBytes: 0, // FIXME
 			},
 		)
 	}
 
+	astat := strconv.Itoa(int(store.GetStatus(js.ID, js.OwnerRepo))) // FIXME use named status
+
 	status := api.StatusResponse{
 		SessionId:            js.ID,
 		ControllerRepo:       api.ControllerRepo{},
 		Actor:                api.Actor{},
 		QueryLanguage:        ji.QueryLanguage,
-		QueryPackURL:         "",
+		QueryPackURL:         "", // FIXME
 		CreatedAt:            ji.CreatedAt,
 		UpdatedAt:            ji.UpdatedAt,
-		ActionsWorkflowRunID: 0,
-		Status:               ji.Status.StatusString(),
+		ActionsWorkflowRunID: 0, // FIXME
+		Status:               astat,
 		ScannedRepositories:  all_scanned,
 		SkippedRepositories:  ji.SkippedRepositories,
 	}

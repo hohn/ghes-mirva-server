@@ -22,7 +22,6 @@ import (
 
 	"github.com/hohn/ghes-mirva-server/analyze"
 	"github.com/hohn/ghes-mirva-server/api"
-	"github.com/hohn/ghes-mirva-server/common"
 	co "github.com/hohn/ghes-mirva-server/common"
 	"github.com/hohn/ghes-mirva-server/store"
 )
@@ -107,16 +106,13 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 	joblist := store.GetJobList(sn.id)
 	for _, job := range joblist {
 		store.SetJobInfo(co.JobSpec{
-			ID: sn.id,
-			OwnerRepo: co.OwnerRepo{
-				Owner: sn.owner,
-				Repo:  job.ORL.Repo,
-			},
+			ID:        sn.id,
+			OwnerRepo: job.ORL,
 		}, co.JobInfo{
-			QueryLanguage:       sn.language,
-			CreatedAt:           m_sr.CreatedAt,
-			UpdatedAt:           m_sr.UpdatedAt,
-			Status:              common.StatusFromString(m_sr.Status),
+			QueryLanguage: sn.language,
+			CreatedAt:     m_sr.CreatedAt,
+			UpdatedAt:     m_sr.UpdatedAt,
+			// Status:              common.StatusFromString(m_sr.Status),
 			SkippedRepositories: m_skip,
 		},
 		)

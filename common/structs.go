@@ -29,9 +29,10 @@ type JobInfo struct {
 	CreatedAt     string
 	UpdatedAt     string
 
-	Status              Status
+	// FIXME separated	Status              Status
 	SkippedRepositories api.SkippedRepositories
 }
+
 type JobSpec struct {
 	ID int
 	OwnerRepo
