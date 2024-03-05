@@ -11,9 +11,8 @@ import (
 	"github.com/hohn/ghes-mirva-server/store"
 )
 
-func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
-	st := new(api.StatusResponse)
-	slog.Debug("Submitting status response", "session", st.SessionId)
+func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo, vaid int) {
+	slog.Debug("Submitting status response", "session", vaid)
 
 	all_scanned := []api.ScannedRepo{}
 	jobs := store.GetJobList(js.ID)

@@ -81,11 +81,8 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 	var m_ac api.Actor
 
 	r_nfr := sn.arr_to_json_NFR()
-
 	r_amr := sn.arr_to_json_AMR()
-
 	r_ncd := sn.arr_to_json_NCDB()
-
 	// TODO fill these
 	r_olr := sn.arr_to_json_OLR()
 
@@ -109,10 +106,9 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 			ID:        sn.id,
 			OwnerRepo: job.ORL,
 		}, co.JobInfo{
-			QueryLanguage: sn.language,
-			CreatedAt:     m_sr.CreatedAt,
-			UpdatedAt:     m_sr.UpdatedAt,
-			// Status:              common.StatusFromString(m_sr.Status),
+			QueryLanguage:       sn.language,
+			CreatedAt:           m_sr.CreatedAt,
+			UpdatedAt:           m_sr.UpdatedAt,
 			SkippedRepositories: m_skip,
 		},
 		)

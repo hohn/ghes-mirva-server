@@ -47,7 +47,7 @@ func serve() {
 	// client side's handling.
 	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}", MirvaStatus)
 
-	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}", MirvaDownLoad2)
+	r.HandleFunc("/repos/{controller_owner}/{controller_repo}/code-scanning/codeql/variant-analyses/{codeql_variant_analysis_id}/repos/{repo_owner}/{repo_name}", MirvaDownloadArtifact)
 
 	r.HandleFunc("/codeql-query-console/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}/{owner_id}/{controller_repo_id}", MirvaDownLoad3)
 
@@ -93,17 +93,20 @@ func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 
 	ji := store.GetJobInfo(js)
 
-	analyze.StatusResponse(w, js, ji)
+	analyze.StatusResponse(w, js, ji, id)
 }
 
-func MirvaDownLoad2(w http.ResponseWriter, r *http.Request) {
+// Download artifacts
+func MirvaDownloadArtifact(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	LogAbove(LogWarning, "mrva download step 2 for (%s,%s,%s,%s,%s)\n",
-		vars["owner"],
-		vars["repo"],
-		vars["codeql_variant_analysis_id"],
-		vars["repo_owner"],
-		vars["repo_name"])
+	slog.Info("MRVA artifact download",
+		"controller_owner", vars["controller_owner"],
+		"controller_repo", vars["controller_repo"],
+		"codeql_variant_analysis_id", vars["codeql_variant_analysis_id"],
+		"repo_owner", vars["repo_owner"],
+		"repo_name", vars["repo_name"],
+	)
+
 }
 
 func MirvaDownLoad3(w http.ResponseWriter, r *http.Request) {
