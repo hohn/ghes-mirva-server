@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/hohn/ghes-mirva-server/api"
 	co "github.com/hohn/ghes-mirva-server/common"
@@ -19,7 +18,7 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 	all_scanned := []api.ScannedRepo{}
 	jobs := store.GetJobList(js.ID)
 	for _, job := range jobs {
-		astat := strconv.Itoa(int(store.GetStatus(js.ID, job.ORL))) // FIXME use named status
+		astat := store.GetStatus(js.ID, job.ORL).ToExternalString()
 		all_scanned = append(all_scanned,
 			api.ScannedRepo{
 				Repository: api.Repository{
@@ -37,7 +36,7 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 		)
 	}
 
-	astat := strconv.Itoa(int(store.GetStatus(js.ID, js.OwnerRepo))) // FIXME use named status
+	astat := store.GetStatus(js.ID, js.OwnerRepo).ToExternalString()
 
 	status := api.StatusResponse{
 		SessionId:            js.ID,

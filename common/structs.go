@@ -29,7 +29,6 @@ type JobInfo struct {
 	CreatedAt     string
 	UpdatedAt     string
 
-	// FIXME separated	Status              Status
 	SkippedRepositories api.SkippedRepositories
 }
 
@@ -76,19 +75,19 @@ func StatusFromString(status string) Status {
 	}
 }
 
-func (s Status) StatusString() string {
+func (s Status) ToExternalString() string {
 	switch s {
 	case StatusInProgress:
-		return "InProgress"
+		return "in_progress"
 	case StatusQueued:
-		return "Queued"
+		return "queued"
 	case StatusError:
-		return "Error"
+		return "error"
 	case StatusSuccess:
-		return "Success"
+		return "succeeded"
 	case StatusFailed:
-		return "Failed"
+		return "failed"
 	default:
-		return "Unknown"
+		return "unknown"
 	}
 }
