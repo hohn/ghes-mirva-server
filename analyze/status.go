@@ -2,25 +2,38 @@ package analyze
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/hohn/ghes-mirva-server/api"
 	co "github.com/hohn/ghes-mirva-server/common"
+	"github.com/hohn/ghes-mirva-server/store"
 )
 
 func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 	st := new(api.StatusResponse)
 	slog.Debug("Submitting status response", "session", st.SessionId)
 
-	scanned := api.ScannedRepo{
-		Repository:        api.Repository{},
-		AnalysisStatus:    ji.Status.StatusString(),
-		ResultCount:       0, // FIXME
-		ArtifactSizeBytes: 0, // FIXME
+	all_scanned := []api.ScannedRepo{}
+	jobs := store.GetJobList(js.ID)
+	for _, job := range jobs {
+		all_scanned = append(all_scanned,
+			api.ScannedRepo{
+				Repository: api.Repository{
+					ID:              0,
+					Name:            job.ORL.Repo,
+					FullName:        fmt.Sprintf("%s/%s", job.ORL.Owner, job.ORL.Repo),
+					Private:         false,
+					StargazersCount: 0,
+					UpdatedAt:       ji.UpdatedAt,
+				},
+				AnalysisStatus:    ji.Status.StatusString(),
+				ResultCount:       0, // FIXME
+				ArtifactSizeBytes: 0, // FIXME
+			},
+		)
 	}
-
-	all_scanned := []api.ScannedRepo{scanned}
 
 	status := api.StatusResponse{
 		SessionId:            js.ID,
@@ -37,7 +50,7 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 	}
 
 	// Encode the response as JSON
-	submit_response, err := json.Marshal(status)
+	submitStatus, err := json.Marshal(status)
 	if err != nil {
 		slog.Error("Error encoding response as JSON:",
 			"error", err)
@@ -47,5 +60,5 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo) {
 
 	// Send analysisReposJSON via ResponseWriter
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(submit_response)
+	w.Write(submitStatus)
 }

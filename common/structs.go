@@ -33,8 +33,8 @@ type JobInfo struct {
 	SkippedRepositories api.SkippedRepositories
 }
 type JobSpec struct {
-	ID  int
-	Orl OwnerRepo
+	ID int
+	OwnerRepo
 }
 
 type Status int
@@ -46,6 +46,34 @@ const (
 	StatusSuccess
 	StatusFailed
 )
+
+type AnalyzeJob struct {
+	MirvaRequestID int
+
+	QueryPackId   int
+	QueryLanguage string
+
+	ORL OwnerRepo
+}
+
+func StatusFromString(status string) Status {
+	switch status {
+	case "in_progress":
+		return StatusInProgress
+	case "InProgress":
+		return StatusInProgress
+	case "Queued":
+		return StatusQueued
+	case "Error":
+		return StatusError
+	case "Success":
+		return StatusSuccess
+	case "Failed":
+		return StatusFailed
+	default:
+		return -1 // or handle the invalid status case accordingly
+	}
+}
 
 func (s Status) StatusString() string {
 	switch s {

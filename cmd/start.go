@@ -76,7 +76,7 @@ func MirvaStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	js := co.JobSpec{
 		ID: id,
-		Orl: co.OwnerRepo{
+		OwnerRepo: co.OwnerRepo{
 			Owner: vars["owner"],
 			Repo:  vars["repo"],
 		},

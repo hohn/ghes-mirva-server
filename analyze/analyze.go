@@ -11,26 +11,18 @@ import (
 	"strings"
 
 	"github.com/hohn/ghes-mirva-server/common"
+	co "github.com/hohn/ghes-mirva-server/common"
 	"github.com/hohn/ghes-mirva-server/store"
 )
 
 var (
 	NumWorkers int
-	Jobs       chan AnalyzeJob
+	Jobs       chan co.AnalyzeJob
 	Results    chan common.AnalyzeResult
 )
 
-type AnalyzeJob struct {
-	MirvaRequestID int
-
-	QueryPackId   int
-	QueryLanguage string
-
-	ORL common.OwnerRepo
-}
-
-func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult) {
-	var job AnalyzeJob
+func worker(wid int, jobs <-chan co.AnalyzeJob, results chan<- common.AnalyzeResult) {
+	var job co.AnalyzeJob
 	for {
 		job = <-jobs
 		slog.Debug("Picking up job", "job", job, "worker", wid)
@@ -69,7 +61,8 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult
 			if len(fields) >= 3 {
 				if fields[0] == "run-analysis-output" {
 					slog.Debug("Analysis run successful: ", "job", job, "location", fields[2])
-					res := common.AnalyzeResult{fields[2]}
+					res := common.AnalyzeResult{
+						RunAnalysisOutput: fields[2]}
 					results <- res
 					store.SetStatus(job.MirvaRequestID, job.ORL, common.StatusSuccess)
 					store.SetResult(job.MirvaRequestID, job.ORL, res)
@@ -81,7 +74,7 @@ func worker(wid int, jobs <-chan AnalyzeJob, results chan<- common.AnalyzeResult
 }
 
 func init() {
-	Jobs = make(chan AnalyzeJob, 10)
+	Jobs = make(chan co.AnalyzeJob, 10)
 	Results = make(chan common.AnalyzeResult, 10)
 	NumWorkers = 2
 

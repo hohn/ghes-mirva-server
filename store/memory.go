@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	info   map[co.JobSpec]co.JobInfo
-	status map[co.JobSpec]co.Status
-	result map[co.JobSpec]co.AnalyzeResult
+	jobs   map[int][]co.AnalyzeJob         = make(map[int][]co.AnalyzeJob)
+	info   map[co.JobSpec]co.JobInfo       = make(map[co.JobSpec]co.JobInfo)
+	status map[co.JobSpec]co.Status        = make(map[co.JobSpec]co.Status)
+	result map[co.JobSpec]co.AnalyzeResult = make(map[co.JobSpec]co.AnalyzeResult)
 	mutex  sync.Mutex
 )
 
@@ -21,6 +22,18 @@ func SetResult(sessionid int, orl co.OwnerRepo, ar co.AnalyzeResult) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	result[co.JobSpec{sessionid, orl}] = ar
+}
+
+func GetJobList(sessionid int) []co.AnalyzeJob {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return jobs[sessionid]
+}
+
+func AddJob(sessionid int, job co.AnalyzeJob) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	jobs[sessionid] = append(jobs[sessionid], job)
 }
 
 func SetStatus(sessionid int, orl co.OwnerRepo, s co.Status) {
@@ -39,6 +52,12 @@ func GetJobInfo(js co.JobSpec) co.JobInfo {
 	mutex.Lock()
 	defer mutex.Unlock()
 	return info[js]
+}
+
+func SetJobInfo(js co.JobSpec, ji co.JobInfo) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	info[js] = ji
 }
 
 func StatusResponse() {

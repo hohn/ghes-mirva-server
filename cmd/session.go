@@ -22,6 +22,7 @@ import (
 
 	"github.com/hohn/ghes-mirva-server/analyze"
 	"github.com/hohn/ghes-mirva-server/api"
+	"github.com/hohn/ghes-mirva-server/common"
 	co "github.com/hohn/ghes-mirva-server/common"
 	"github.com/hohn/ghes-mirva-server/store"
 )
@@ -102,6 +103,25 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 	m_sr.Status = "in_progress"
 	m_sr.SkippedRepositories = m_skip
 
+	// Store data needed later
+	joblist := store.GetJobList(sn.id)
+	for _, job := range joblist {
+		store.SetJobInfo(co.JobSpec{
+			ID: sn.id,
+			OwnerRepo: co.OwnerRepo{
+				Owner: sn.owner,
+				Repo:  job.ORL.Repo,
+			},
+		}, co.JobInfo{
+			QueryLanguage:       sn.language,
+			CreatedAt:           m_sr.CreatedAt,
+			UpdatedAt:           m_sr.UpdatedAt,
+			Status:              common.StatusFromString(m_sr.Status),
+			SkippedRepositories: m_skip,
+		},
+		)
+	}
+
 	// Encode the response as JSON
 	submit_response, err := json.Marshal(m_sr)
 	if err != nil {
@@ -110,7 +130,7 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 		return
 	}
 
-	// Send analysisReposJSON via ResponseWriter
+	// Send via ResponseWriter
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(submit_response)
 
@@ -171,7 +191,7 @@ func (sn *MirvaSession) start_analyses() {
 	slog.Debug("Queueing codeql database analyze jobs")
 
 	for orl := range sn.analysis_repos {
-		info := analyze.AnalyzeJob{
+		info := co.AnalyzeJob{
 			QueryPackId:   sn.id,
 			QueryLanguage: sn.language,
 
@@ -179,6 +199,7 @@ func (sn *MirvaSession) start_analyses() {
 		}
 		analyze.Jobs <- info
 		store.SetStatus(sn.id, orl, co.StatusQueued)
+		store.AddJob(sn.id, info)
 	}
 }
 
