@@ -35,6 +35,9 @@ to quickly create a Cobra application.`,
 func serve() {
 	r := mux.NewRouter()
 
+	//
+	// First are the API endpoints that mirror those used in the github API
+	//
 	r.HandleFunc("/repos/{owner}/{repo}/code-scanning/codeql/variant-analyses", MirvaRequest)
 	// 			  /repos/hohn   /mirva-controller/code-scanning/codeql/variant-analyses
 	// Or via
@@ -53,7 +56,14 @@ func serve() {
 
 	r.HandleFunc("/github-codeql-query-console-prod/codeql-variant-analysis-repo-tasks/{codeql_variant_analysis_id}/{repo_id}", MirvaDownLoad4)
 
+	//
+	// Now some support API endpoints
+	//
+	r.HandleFunc("/download-server/{local_path:.*}", MirvaDownloadServe)
+
+	//
 	// Bind to a port and pass our router in
+	//
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
@@ -106,6 +116,21 @@ func MirvaDownloadArtifact(w http.ResponseWriter, r *http.Request) {
 		"repo_owner", vars["repo_owner"],
 		"repo_name", vars["repo_name"],
 	)
+	vaid, err := strconv.Atoi(vars["codeql_variant_analysis_id"])
+	if err != nil {
+		slog.Error("Variant analysis is is not integer", "id",
+			vars["codeql_variant_analysis_id"])
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	js := co.JobSpec{
+		ID: vaid,
+		OwnerRepo: co.OwnerRepo{
+			Owner: vars["repo_owner"],
+			Repo:  vars["repo_name"],
+		},
+	}
+	analyze.DownloadResponse(w, js, vaid)
 
 }
 
@@ -123,6 +148,13 @@ func MirvaDownLoad4(w http.ResponseWriter, r *http.Request) {
 	LogAbove(LogWarning, "mrva download step 4 for (%s,%s)\n",
 		vars["codeql_variant_analysis_id"],
 		vars["repo_id"])
+}
+
+func MirvaDownloadServe(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	slog.Info("File download request", "local_path", vars["local_path"])
+
+	analyze.FileDownload(w, vars["local_path"])
 }
 
 func MirvaRequestID(w http.ResponseWriter, r *http.Request) {

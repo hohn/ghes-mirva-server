@@ -366,8 +366,6 @@ func (sn *MirvaSession) find_available_DBs() {
 		sn.analysis_repos = map[co.OwnerRepo]DBLocation{}
 	}
 
-	// We're looking for paths like
-	// codeql/sarif/google/flatbuffers/google_flatbuffers.sarif
 	for _, rep := range sn.repositories {
 		dbPrefix := filepath.Join(cwd, "codeql", "dbs", rep.Owner, rep.Repo)
 		dbName := fmt.Sprintf("%s_%s_db.zip", rep.Owner, rep.Repo)

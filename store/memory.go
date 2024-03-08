@@ -24,6 +24,13 @@ func SetResult(sessionid int, orl co.OwnerRepo, ar co.AnalyzeResult) {
 	result[co.JobSpec{sessionid, orl}] = ar
 }
 
+func GetResult(js co.JobSpec) co.AnalyzeResult {
+	mutex.Lock()
+	defer mutex.Unlock()
+	ar := result[js]
+	return ar
+}
+
 func GetJobList(sessionid int) []co.AnalyzeJob {
 	mutex.Lock()
 	defer mutex.Unlock()

@@ -29,8 +29,8 @@ func StatusResponse(w http.ResponseWriter, js co.JobSpec, ji co.JobInfo, vaid in
 					UpdatedAt:       ji.UpdatedAt,
 				},
 				AnalysisStatus:    astat,
-				ResultCount:       0, // FIXME
-				ArtifactSizeBytes: 0, // FIXME
+				ResultCount:       123, // FIXME  123 is a lie so the client downloads
+				ArtifactSizeBytes: 123, // FIXME
 			},
 		)
 	}
