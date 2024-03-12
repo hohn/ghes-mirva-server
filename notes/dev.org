@@ -60,7 +60,7 @@
 
 ** DONE Request: mrva download part 1
    [[file:~/local/gh-mrva/log-download-60.log::Download the sarif files and CodeQL dbs when finished]]
-   1. [ ] GET
+   1. [X] GET
       : /repositories/:repository_id/code-scanning/codeql/variant-analyses/:codeql_variant_analysis_id
 
    2. [X] GET
@@ -146,7 +146,8 @@
   handle parallelism and external processes to use multiple cores to do the
   work will provide the same behaviour as truly separate machines, but
   without the overhead -- no network protocols, no separate services.
-** ONGOING mrva submit activity
+** DONE mrva submit activity
+   - State "DONE"       from "ONGOING"    [2024-03-12 Tue 16:27]
    [[file:~/local/gh-mrva/log-submit-71.log]]
 
    The original
@@ -298,9 +299,10 @@
 ** DONE mrva analysis, post-submit
    See [[file:~/local/ghes-mirva-server/cmd/run-analysis.sh::!/bin/bash -x -e]]
 
-** ONGOING MRVA state storage in memory
-** ONGOING MRVA status reporting
-** TODO MRVA downloading
+** DONE MRVA state storage in memory
+** DONE MRVA status reporting
+** DONE MRVA downloading
+   CLOSED: [2024-03-12 Tue 16:28]
 
 ** Client Note
    The client has to submit queries from the latest version of codeql, currently
@@ -312,13 +314,17 @@
    #+END_SRC
    here on the server.
 
-** NEXT mrva request testing via client
+** DONE mrva request testing via client
+   CLOSED: [2024-03-12 Tue 16:29]
+   - State "DONE"       from "NEXT"       [2024-03-12 Tue 16:29]
    The gh-mrva client uses gh.RESTClient(), so URL overrides are there.
 
    Pre-canned requests from =curl= may be easier for testing, but the payload is a
    query pack.
 
-** TODO mrva status activity
+** DONE mrva status activity
+   CLOSED: [2024-03-12 Tue 16:28]
+   - State "DONE"       from "NEXT"       [2024-03-12 Tue 16:28]
    [[file:~/local/gh-mrva/log-status-60.log::Check the status]]
    - POST request, Data from the URL
    - POST request, data from the payload
@@ -327,7 +333,9 @@
    - POST request reponse body in full; much of this response will not be used
      further, so we provide dummy values for those entries.
 
-** TODO mrva download activity
+** DONE mrva download activity
+   CLOSED: [2024-03-12 Tue 16:28]
+   - State "DONE"       from "NEXT"       [2024-03-12 Tue 16:28]
    - POST request, Data from the URL
    - POST request, data from the payload
    - Internal processing follows from the request payload, response body, and
