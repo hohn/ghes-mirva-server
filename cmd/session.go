@@ -83,7 +83,7 @@ func (sn *MirvaSession) submit_response(w http.ResponseWriter) {
 	r_nfr := sn.arr_to_json_NFR()
 	r_amr := sn.arr_to_json_AMR()
 	r_ncd := sn.arr_to_json_NCDB()
-	// TODO fill these
+	// TODO fill these with real values?
 	r_olr := sn.arr_to_json_OLR()
 
 	m_skip := api.SkippedRepositories{r_amr, r_nfr, r_ncd, r_olr}
@@ -339,7 +339,7 @@ func TrySubmitMsg(buf []byte) (SubmitMsg, error) {
 }
 
 func (sn *MirvaSession) save() {
-	// TODO sqlite state retention
+	// TODO Use sqlite state retention instead of the memory.go package.  To be chosen as command-line switch
 
 }
 

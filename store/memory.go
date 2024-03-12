@@ -18,6 +18,8 @@ var (
 	mutex  sync.Mutex
 )
 
+// TODO Provide sqlite state retention instead of the memory.go package.  To be chosen as command-line switch
+
 func SetResult(sessionid int, orl co.OwnerRepo, ar co.AnalyzeResult) {
 	mutex.Lock()
 	defer mutex.Unlock()

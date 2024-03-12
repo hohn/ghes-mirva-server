@@ -51,8 +51,7 @@ func DownloadResponse(w http.ResponseWriter, js co.JobSpec, vaid int) {
 			ArtifactSizeBytes:    123, // FIXME
 			DatabaseCommitSha:    "do-we-use-dcs-p",
 			SourceLocationPrefix: "do-we-use-slp-p",
-			// FIXME 404 page not found
-			ArtifactURL: au,
+			ArtifactURL:          au,
 		}
 	} else {
 		dlr = api.DownloadResponse{
