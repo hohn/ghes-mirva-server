@@ -27,13 +27,11 @@ func DownloadResponse(w http.ResponseWriter, js co.JobSpec, vaid int) {
 		// codeql/sarif/google/flatbuffers/google_flatbuffers.sarif
 		ar := store.GetResult(js)
 
-		//	FIXME ar.RunAnalysisOutput: "/Users/hohn/local/ghes-mirva-server/var/codeql/sarif/localrun/psycopg/psycopg2/psycopg_psycopg2.sarif"
-		// hostname, err := os.Hostname()
-		// if err != nil {
-		// 	slog.Error("No host name found")
-		// 	return
-		// }
-		hostname := "localhost" // FIXME
+		hostname, err := os.Hostname()
+		if err != nil {
+			slog.Error("No host name found")
+			return
+		}
 
 		zfpath, err := PackageResults(ar, js.OwnerRepo, vaid)
 		if err != nil {
