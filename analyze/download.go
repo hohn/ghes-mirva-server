@@ -1,12 +1,14 @@
 package analyze
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/hohn/ghes-mirva-server/api"
@@ -33,9 +35,14 @@ func DownloadResponse(w http.ResponseWriter, js co.JobSpec, vaid int) {
 		// }
 		hostname := "localhost" // FIXME
 
+		zfpath, err := PackageResults(ar, js.OwnerRepo, vaid)
+		if err != nil {
+			slog.Error("Error packaging results:", "error", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		au := fmt.Sprintf(
-			"http://%s:8080/download-server/%s", hostname, ar.RunAnalysisOutput)
-
+			"http://%s:8080/download-server/%s", hostname, zfpath)
 		dlr = api.DownloadResponse{
 			Repository: api.DownloadRepo{
 				Name:     js.Repo,
@@ -78,8 +85,66 @@ func DownloadResponse(w http.ResponseWriter, js co.JobSpec, vaid int) {
 	w.Write(jdlr)
 
 }
+
+func PackageResults(ar co.AnalyzeResult, owre co.OwnerRepo, vaid int) (zipPath string, e error) {
+	slog.Debug("Readying zip file with .sarif/.bqrs", "analyze-result", ar)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		slog.Error("No working directory")
+		panic(err)
+	}
+
+	// Ensure the output directory exists
+	dirpath := path.Join(cwd, "var", "codeql", "localrun", "results")
+	if err := os.MkdirAll(dirpath, 0755); err != nil {
+		slog.Error("Unable to create results output directory",
+			"dir", dirpath)
+		return "", err
+	}
+
+	// Create a new zip file
+	zpath := path.Join(dirpath, fmt.Sprintf("results-%s-%s-%d.zip", owre.Owner, owre.Repo, vaid))
+
+	zfile, err := os.Create(zpath)
+	if err != nil {
+		return "", err
+	}
+	defer zfile.Close()
+
+	// Create a new zip writer
+	zwriter := zip.NewWriter(zfile)
+	defer zwriter.Close()
+
+	// Add each result file to the zip archive
+	names := []([]string){{ar.RunAnalysisSARIF, "results.sarif"}}
+	for _, fpath := range names {
+		file, err := os.Open(fpath[0])
+		if err != nil {
+			return "", err
+		}
+		defer file.Close()
+
+		// Create a new file in the zip archive with custom name
+		// The client is very specific:
+		// if zf.Name != "results.sarif" && zf.Name != "results.bqrs" { continue }
+
+		zipEntry, err := zwriter.Create(fpath[1])
+		if err != nil {
+			return "", err
+		}
+
+		// Copy the contents of the file to the zip entry
+		_, err = io.Copy(zipEntry, file)
+		if err != nil {
+			return "", err
+		}
+	}
+	return zpath, nil
+}
+
 func FileDownload(w http.ResponseWriter, path string) {
-	slog.Debug("Readying file for upload", "path", path)
+	slog.Debug("Sending zip file with .sarif/.bqrs", "path", path)
 
 	fpath := path
 	if !filepath.IsAbs(path) {

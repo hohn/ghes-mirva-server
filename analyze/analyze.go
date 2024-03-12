@@ -62,7 +62,9 @@ func worker(wid int, jobs <-chan co.AnalyzeJob, results chan<- common.AnalyzeRes
 				if fields[0] == "run-analysis-output" {
 					slog.Debug("Analysis run successful: ", "job", job, "location", fields[2])
 					res := common.AnalyzeResult{
-						RunAnalysisOutput: fields[2]}
+						RunAnalysisSARIF: fields[2], // Abs. path from run-analysis.sh
+						RunAnalysisBQRS:  "",        // FIXME? see note in run-analysis.sh
+					}
 					results <- res
 					store.SetStatus(job.QueryPackId, job.ORL, common.StatusSuccess)
 					store.SetResult(job.QueryPackId, job.ORL, res)

@@ -47,4 +47,11 @@ codeql database analyze --format=sarif-latest --rerun \
        -- $DBPATH/$DBINFIX $QUERYEXTRACT
 
 #*    report result
+# var/codeql/sarif/localrun/google/flatbuffers/google_flatbuffers.sarif
 printf "run-analysis-output in %s\n" $QUERYOUTF
+# TODO Is the bqrs really necessary?  It can also be found by the go code at this point. 
+# The name of the query is only found in the query pack itself and would have to be 
+# extracted from there.
+# var/codeql/dbs/google/flatbuffers/cpp/results/codeql-remote/query/FlatBuffersFunc.bqrs
+# BQRSPATH=$GMSROOT/var/codeql/dbs/$DBOWNER/$DBREPO/$LANGUAGE/results/codeql-remote/query/
+# printf "run-analysis-bqrs in %s\n" $QUERYOUTF

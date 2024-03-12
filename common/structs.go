@@ -3,7 +3,8 @@ package common
 import "github.com/hohn/ghes-mirva-server/api"
 
 type AnalyzeResult struct {
-	RunAnalysisOutput string
+	RunAnalysisSARIF string
+	RunAnalysisBQRS  string
 }
 
 type OwnerRepo struct {
