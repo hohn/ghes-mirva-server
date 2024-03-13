@@ -345,3 +345,77 @@
 
 * TODO Include Context in request propagation
    https://pkg.go.dev/context#Context
+* Running the client/server: demo
+  This is a running sequence demonstrating the use of this server together with
+  the MRVA client, [[https://github.com/hohn/gh-mrva/tree/connection-redirect][connection-redirect]] branch.
+  
+  On the server (this repo)
+  #+BEGIN_SRC sh 
+    # Get the source
+    cd ~/local
+    git clone git@github.com:hohn/ghes-mirva-server.git
+
+    # Build it 
+    cd ~/local/ghes-mirva-server
+    go build 
+
+    # Run it
+    ./ghes-mirva-server --verbosity debug start
+  #+END_SRC
+
+  On the client side
+  #+BEGIN_SRC sh 
+    # Clone client
+    cd ~/local
+    git clone git@github.com:hohn/gh-mrva.git
+
+    # Pick the branch
+    cd ~/local/gh-mrva
+    git checkout connection-redirect
+
+    # Build it
+    go clean
+    go build . # go build -gcflags="all=-N -l" . 
+
+    # submit(): submit a job to the server
+    submit (){
+        SN=$1
+        cd ~/local/gh-mrva
+        ./gh-mrva submit --language cpp --session mirva-session-$SN     \
+                  --list mirva-list                                     \
+                  --query /Users/hohn/local/gh-mrva/FlatBuffersFunc.ql >& log-submit-$SN.log &
+        # sleep 1 && em log-submit-$SN.log
+    }
+
+    # sessstatus(): Check the status
+    sessstatus (){
+        SN=$1
+        cd ~/local/gh-mrva
+        ./gh-mrva status --session mirva-session-$SN >& log-$SN-status.log &
+        sleep 1 && em log-$SN-status.log
+    }
+
+    # dl(): Just download sarif / bqrs zip file
+    dl (){
+        SN=$1
+        cd ~/local/gh-mrva
+        ./gh-mrva download --session mirva-session-$SN \
+                  --output-dir mirva-session-$SN-sarif \
+                  >& log-download-$SN.log &
+        sleep 1 && em log-download-$SN.log 
+    }
+
+    # Connect to the server by sending the submit, status, and download requests
+    # If the status request is sent right after submit, the response will have an
+    # in_progress status
+    submit      230
+    sessstatus  230
+    dl          230
+
+    # Check the download artifacts
+    ls *230*
+    # log-230-status.log    log-download-230.log  log-submit-230.log
+
+    # mirva-session-230-sarif:
+    # google_flatbuffers_93522.sarif* psycopg_psycopg2_93522.sarif*
+  #+END_SRC
